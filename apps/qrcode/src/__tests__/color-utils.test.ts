@@ -69,3 +69,26 @@ describe('averageColor', () => {
     expect(averageColor('#000', '#fff')).toBe('#808080');
   });
 });
+
+import { hexToHsl, hslToHex } from '../lib/color-utils';
+
+describe('hexToHsl / hslToHex', () => {
+  it('parses pure red', () => {
+    expect(hexToHsl('#ff0000')).toEqual({ h: 0, s: 100, l: 50 });
+  });
+
+  it('parses pure white', () => {
+    expect(hexToHsl('#ffffff')).toEqual({ h: 0, s: 0, l: 100 });
+  });
+
+  it('round-trips a few brand colors via hslToHex (≤2 unit drift per channel)', () => {
+    const inputs = ['#ff0000', '#22d3ee', '#7c8cf5', '#4ade80'];
+    for (const hex of inputs) {
+      const hsl = hexToHsl(hex)!;
+      const back = hslToHex(hsl.h, hsl.s, hsl.l);
+      const a = hex.slice(1).match(/.{2}/g)!.map((x) => parseInt(x, 16));
+      const b = back.slice(1).match(/.{2}/g)!.map((x) => parseInt(x, 16));
+      a.forEach((v, i) => expect(Math.abs(v - b[i])).toBeLessThanOrEqual(2));
+    }
+  });
+});

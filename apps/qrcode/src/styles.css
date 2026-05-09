@@ -216,6 +216,159 @@ body {
 }
 .qr-color-input:hover { border-color: var(--accent); }
 
+/* Color picker */
+.qr-cp-field { position: relative; }
+.qr-cp-trigger-row { display: flex; gap: var(--space-2); align-items: center; }
+.qr-cp-trigger {
+  width: 32px;
+  height: 32px;
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.qr-cp-trigger:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.qr-cp-swatch {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background-image:
+    repeating-conic-gradient(#444 0% 25%, #222 0% 50%);
+  background-size: 8px 8px;
+  background-blend-mode: normal;
+}
+.qr-cp-swatch[style] { background-image: none; }
+.qr-cp-hex {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+.qr-cp-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-lg);
+  animation: aliv-popover-in var(--dur-base) var(--ease-spring);
+}
+.qr-cp-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.5 / 1;
+  border-radius: var(--radius-sm);
+  cursor: crosshair;
+  touch-action: none;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.qr-cp-area-thumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.qr-cp-hue {
+  width: 100%;
+  height: 12px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right,
+    #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%,
+    #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+}
+.qr-cp-hue::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgba(0,0,0,0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: grab;
+}
+.qr-cp-hue::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgba(0,0,0,0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: grab;
+}
+
+.qr-cp-chips {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+.qr-cp-chip {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--dur-fast) var(--ease-spring), border-color var(--dur-fast);
+  position: relative;
+}
+.qr-cp-chip:hover { transform: scale(1.1); border-color: var(--accent); }
+.qr-cp-chip svg {
+  width: 12px;
+  height: 12px;
+  stroke: white;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
+}
+.qr-cp-recent {
+  grid-template-columns: repeat(6, 1fr);
+}
+.qr-cp-chip-sm { border-radius: 4px; }
+.qr-cp-eyedropper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+  align-self: flex-start;
+}
+.qr-cp-eyedropper:hover { color: var(--text); border-color: var(--accent); }
+.qr-cp-eyedropper svg { width: 14px; height: 14px; }
+
+.qr-checkbox-label { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+.qr-checkbox-label input[type="checkbox"] { accent-color: var(--accent); }
+
 .qr-actions {
   display: flex;
   gap: var(--space-2);

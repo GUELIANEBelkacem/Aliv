@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { isValidHex } from '../lib/color-utils';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Pipette, Check } from 'lucide-react';
+import { isValidHex, expandHex, hexToHsl, hslToHex } from '../lib/color-utils';
 
 interface ColorPickerProps {
   value: string;
@@ -8,37 +9,84 @@ interface ColorPickerProps {
   id: string;
 }
 
+const BRAND_CHIPS = [
+  '#0c0d12', '#ffffff',
+  '#7c8cf5', '#22d3ee', '#4ade80', '#f59e0b',
+  '#ef4444', '#ec4899',
+];
+
+const RECENT_KEY = 'qr-color-recent';
+const MAX_RECENT = 6;
+
+function readRecent(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((v) => typeof v === 'string' && isValidHex(v)).slice(0, MAX_RECENT);
+  } catch {
+    return [];
+  }
+}
+
+function pushRecent(color: string): string[] {
+  const current = readRecent();
+  const next = [color, ...current.filter((c) => c.toLowerCase() !== color.toLowerCase())].slice(0, MAX_RECENT);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  return next;
+}
+
 export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
+  const fallbackId = useId();
+  const inputId = id || fallbackId;
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
-  const [error, setError] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Sync the draft when the parent's value changes externally (e.g. preset apply).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setDraft(value); }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onClickOutside(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false); }
+    window.addEventListener('mousedown', onClickOutside);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onClickOutside);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   function commit(v: string) {
     if (isValidHex(v)) {
-      onChange(v);
-      setError(false);
-    } else {
-      setError(true);
+      const expanded = expandHex(v);
+      onChange(expanded);
+      pushRecent(expanded);
     }
   }
 
   return (
-    <div className="qr-field">
-      <label htmlFor={id}>{label}</label>
-      <div className="qr-row">
-        <input
-          type="color"
-          className="qr-color-input"
+    <div className="qr-field qr-cp-field" ref={wrapRef}>
+      <label htmlFor={inputId}>{label}</label>
+      <div className="qr-cp-trigger-row">
+        <button
+          type="button"
+          className="qr-cp-trigger"
+          onClick={() => setOpen((v) => !v)}
           aria-label={`${label} swatch`}
-          value={isValidHex(value) ? value : '#000000'}
-          onChange={(e) => {
-            setDraft(e.target.value);
-            commit(e.target.value);
-          }}
-        />
+          aria-expanded={open}
+        >
+          <span className="qr-cp-swatch" style={{ background: isValidHex(value) ? value : '#000000' }} />
+        </button>
         <input
-          id={id}
+          id={inputId}
           type="text"
-          className="qr-input"
+          className="qr-input qr-cp-hex"
           value={draft}
           onChange={(e) => {
             setDraft(e.target.value);
@@ -46,9 +94,104 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
           }}
           onBlur={() => setDraft(value)}
           spellCheck={false}
-          style={error ? { borderColor: 'var(--danger)' } : undefined}
         />
       </div>
+      {open && <ColorPickerPopover value={value} onChange={(v) => { onChange(v); pushRecent(v); }} />}
+    </div>
+  );
+}
+
+function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const hsl = hexToHsl(value) ?? { h: 200, s: 50, l: 50 };
+  const [recent, setRecent] = useState<string[]>(() => readRecent());
+
+  function emit(next: { h: number; s: number; l: number }) {
+    onChange(hslToHex(next.h, next.s, next.l));
+  }
+
+  function applyChip(hex: string) {
+    onChange(hex);
+    setRecent(pushRecent(hex));
+  }
+
+  async function pickFromScreen() {
+    const win = window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
+    if (!win.EyeDropper) return;
+    try {
+      const result = await new win.EyeDropper().open();
+      if (result.sRGBHex && isValidHex(result.sRGBHex)) onChange(result.sRGBHex);
+    } catch { /* user cancelled */ }
+  }
+
+  const sat = Math.max(0, Math.min(100, hsl.s));
+  const light = Math.max(0, Math.min(100, hsl.l));
+  const hue = Math.max(0, Math.min(360, hsl.h));
+
+  function onAreaPointer(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.buttons !== 1 && e.type !== 'pointerdown') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    emit({ h: hue, s: Math.round(x * 100), l: Math.round((1 - y) * 100) });
+  }
+
+  const eyedropperSupported = typeof window !== 'undefined' && 'EyeDropper' in window;
+
+  return (
+    <div className="qr-cp-popover" role="dialog" aria-label="Color picker">
+      <div
+        className="qr-cp-area"
+        style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))` }}
+        onPointerDown={onAreaPointer}
+        onPointerMove={onAreaPointer}
+      >
+        <span className="qr-cp-area-thumb" style={{ left: `${sat}%`, top: `${100 - light}%` }} />
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={360}
+        value={hue}
+        onChange={(e) => emit({ ...hsl, h: Number(e.target.value) })}
+        className="qr-cp-hue"
+        aria-label="Hue"
+      />
+      <div className="qr-cp-chips" role="group" aria-label="Brand colors">
+        {BRAND_CHIPS.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            className="qr-cp-chip"
+            style={{ background: chip }}
+            onClick={() => applyChip(chip)}
+            aria-label={chip}
+            title={chip}
+          >
+            {value.toLowerCase() === chip.toLowerCase() && <Check aria-hidden="true" />}
+          </button>
+        ))}
+      </div>
+      {recent.length > 0 && (
+        <div className="qr-cp-chips qr-cp-recent" role="group" aria-label="Recent colors">
+          {recent.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="qr-cp-chip qr-cp-chip-sm"
+              style={{ background: c }}
+              onClick={() => applyChip(c)}
+              aria-label={c}
+              title={c}
+            />
+          ))}
+        </div>
+      )}
+      {eyedropperSupported && (
+        <button type="button" className="qr-cp-eyedropper" onClick={pickFromScreen}>
+          <Pipette aria-hidden="true" />
+          Pick from screen
+        </button>
+      )}
     </div>
   );
 }
