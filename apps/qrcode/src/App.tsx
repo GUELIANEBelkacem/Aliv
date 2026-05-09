@@ -5,6 +5,7 @@ import { ContentInput } from './components/ContentInput';
 import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
 import { SizeMarginControls } from './components/SizeMarginControls';
 import { ColorControls } from './components/ColorControls';
+import { ShapeControls } from './components/ShapeControls';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
 
 export default function App() {
@@ -26,6 +27,14 @@ export default function App() {
             onForegroundChange={(foreground) => update({ foreground })}
             onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
             onEyeColorChange={(eyeColor) => update({ eyeColor })}
+          />
+          <ShapeControls
+            moduleShape={options.moduleShape}
+            eyeFrameShape={options.eyeFrameShape}
+            eyeBallShape={options.eyeBallShape}
+            onModuleShape={(moduleShape) => update({ moduleShape })}
+            onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
+            onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
           />
           <div className="qr-control-group">
             <h3>Format</h3>
