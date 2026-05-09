@@ -11,6 +11,8 @@ import { LogoEcWarning } from './components/LogoEcWarning';
 import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { assess } from './lib/scannability';
+import { QrSettings } from './settings/QrSettings';
+import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
@@ -54,8 +56,18 @@ export default function App() {
     update({ errorCorrection: level });
   }
 
+  function handleApplyPreset(preset: Preset) {
+    setOptions((prev) => applyPreset(prev, preset));
+    setUserTouchedEc(false);
+  }
+
+  function handleReset(reset: QrOptions) {
+    setOptions(reset);
+    setUserTouchedEc(false);
+  }
+
   return (
-    <AppShell appId="qrcode">
+    <AppShell appId="qrcode" settings={<QrSettings onApplyPreset={handleApplyPreset} onReset={handleReset} />}>
       <div className="qr-app">
         <div className="qr-controls">
           <div className="qr-control-group">

@@ -191,6 +191,46 @@ body {
   align-self: flex-start;
 }
 
+.qr-settings-body { display: flex; flex-direction: column; gap: var(--space-5); }
+.settings-title { font-size: 1.05rem; font-weight: 600; margin: 0; }
+.settings-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+.qr-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+.qr-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  font: inherit;
+  color: var(--text);
+}
+.qr-preset:hover { border-color: var(--accent); }
+.qr-preset.is-current { border-color: var(--accent); background: var(--surface-elevated); }
+.qr-preset-swatch {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 2px solid;
+}
+.qr-preset-name { font-size: 0.85rem; }
+
 @media (max-width: 768px) {
   .qr-app {
     flex-direction: column;
