@@ -4,14 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-JsonToXML is a client-side JSON-to-XML and XML-to-JSON converter with a dark-first SaaS-like interface featuring syntax-highlighted CodeMirror editors, real-time conversion, beautification, and configurable settings. All processing runs in the browser — no backend. The application code lives in the `JsonToXML/` subdirectory (not the repo root).
+This repository is being transformed into **Aliv** — a multi-app platform of privacy-first, no-upload, dark-themed web utilities. Each utility is a standalone app on its own subdomain, but all apps share one visual identity, navigation, and shell (Google-suite style with an app switcher).
 
-This app is the **first in a planned portfolio of privacy-first, no-upload, dark-themed dev utilities**. Shared design system, button variants, settings drawer pattern, and keyboard-shortcut framework are intended to be reused across future tools.
+The current `JsonToXML/` directory is the first app in the platform. It will be moved to `apps/json-xml/` once the monorepo refactor (Phase 0) is done. The shared design system, app shell, app switcher, and brand assets will live in `packages/ui/`.
 
-## Portfolio Roadmap
+## Platform & Roadmap Documents
 
-- **`UTILITY_RESEARCH_REPORT.md`** — full market research: 28 utility ideas across underserved / poorly-executed / common-but-useful categories, with differentiators and difficulty ratings.
-- **`NEXT_STEPS.md`** — short roadmap. Next two builds: **QR Code Generator** (in planning), then **Hash Generator**.
+- **`PLATFORM_BUILD_PLAN.md`** — **master execution plan**. Detailed, phase-by-phase steps for the monorepo refactor (Part A: Phases 0.1–0.8) and the QR code generator (Part B: Phases Q.0–Q.11). Includes file deliverables, test targets, acceptance criteria, risks. Work proceeds from this document.
+- **`ALIV_PLATFORM.md`** — platform vision + decisions log: brand, subdomain model, monorepo layout, app switcher spec, unified `AppShell`.
+- **`UTILITY_RESEARCH_REPORT.md`** — market research, 28 utility ideas, differentiators, difficulty ratings.
+- **`NEXT_STEPS.md`** — high-level roadmap (superseded for QR/platform work by `PLATFORM_BUILD_PLAN.md`).
+
+Brand assets currently live at `C:\Users\moham\Desktop\projects\Design\` (PNG logo, paint.net source). PNG-to-SVG conversion is Phase 0.3 of the build plan.
 
 ## Commands
 

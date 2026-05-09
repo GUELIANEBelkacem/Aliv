@@ -1,6 +1,17 @@
-# Next Steps — Utility Portfolio Roadmap
+# Next Steps — Aliv Platform Roadmap
 
-After shipping the JSON↔XML converter, the next two utilities to build (in order) are picked from `UTILITY_RESEARCH_REPORT.md`. Both reuse the existing dark-first design system, settings drawer pattern, and client-side-only architecture.
+> **Updated direction**: The project is now the **Aliv** multi-app platform (see `ALIV_PLATFORM.md`). The QR code generator and hash generator described below will be built **inside** the Aliv shell, on their own subdomains, after the platform refactor is done.
+
+## Build order
+
+0. **Monorepo + brand refactor** *(Phase 0 — must come first)* — convert repo to monorepo, move JsonToXML to `apps/json-xml/`, build `packages/ui/` (tokens, AppShell, AppSwitcher), convert logo PNG→SVG, define green-accented palette, refactor JSON↔XML onto the new shell. See `ALIV_PLATFORM.md` for details.
+1. **Platform landing** — `apps/web/` for `aliv.<tld>`, app grid driven by shared registry.
+2. **QR code generator** — see spec below.
+3. **Hash generator** — see spec below.
+
+The two app specs below are unchanged in scope, but they will be built sitting inside the shared `AppShell` (header with app switcher, theme toggle, shortcuts) instead of standalone chrome.
+
+---
 
 ## 1. QR Code Generator (next target)
 
