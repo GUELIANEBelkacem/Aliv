@@ -1,0 +1,271 @@
+.aliv-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.aliv-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.aliv-shell-brand { display: flex; align-items: center; gap: var(--space-3); }
+
+.aliv-brand-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent);
+  text-decoration: none;
+}
+.aliv-brand-link:hover { color: var(--accent-hover); }
+
+.aliv-wordmark {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.aliv-brand-divider {
+  color: var(--text-faint);
+  font-weight: 300;
+}
+
+.aliv-app-name {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.aliv-shell-actions { display: flex; align-items: center; gap: var(--space-1); }
+
+.aliv-shell-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+.aliv-shell-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--surface);
+}
+
+.aliv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
+  border: 1px solid transparent;
+}
+.aliv-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.aliv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.aliv-btn-primary {
+  background: var(--accent);
+  color: #0c0d12;
+  box-shadow: 0 0 0 0 var(--accent-glow);
+}
+.aliv-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.aliv-btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.aliv-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-elevated);
+  border-color: var(--text-faint);
+}
+
+.aliv-btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.aliv-btn-ghost:hover:not(:disabled) {
+  background: var(--surface-elevated);
+  color: var(--text);
+}
+
+.aliv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  font-size: 1rem;
+}
+.aliv-icon-btn:hover {
+  background: var(--surface-elevated);
+  color: var(--text);
+}
+
+.aliv-drawer-root,
+.aliv-modal-root,
+.aliv-popover-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.aliv-drawer-backdrop,
+.aliv-modal-backdrop,
+.aliv-popover-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.aliv-drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: min(380px, 100vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: var(--space-5);
+  overflow-y: auto;
+  animation: aliv-drawer-in 0.2s ease;
+}
+.aliv-drawer-right { right: 0; }
+.aliv-drawer-left { left: 0; border-left: none; border-right: 1px solid var(--border); }
+
+@keyframes aliv-drawer-in {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.aliv-modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  min-width: 320px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.aliv-shortcuts-modal h2 { margin: 0 0 var(--space-4) 0; font-size: 1.1rem; }
+.aliv-shortcuts-list { list-style: none; padding: 0; margin: 0; }
+.aliv-shortcuts-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.aliv-shortcuts-list li:last-child { border-bottom: none; }
+.aliv-shortcuts-list kbd {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 2px var(--space-2);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.aliv-shortcuts-list span { color: var(--text-muted); }
+
+.aliv-app-switcher {
+  position: absolute;
+  right: var(--space-4);
+  top: 64px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  min-width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.aliv-app-switcher h3 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.aliv-app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+@media (max-width: 480px) {
+  .aliv-app-grid { grid-template-columns: repeat(2, 1fr); }
+  .aliv-app-switcher { right: var(--space-2); left: var(--space-2); }
+}
+
+.aliv-app-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  border: 1px solid transparent;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.aliv-app-tile:hover { background: var(--surface-elevated); transform: translateY(-1px); }
+.aliv-app-tile.is-current { border-color: currentColor; }
+.aliv-app-tile.is-coming-soon { opacity: 0.55; cursor: not-allowed; }
+.aliv-app-tile-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.aliv-app-tile-tagline {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1.2;
+}
+.aliv-app-tile-badge {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  font-size: 0.6rem;
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
