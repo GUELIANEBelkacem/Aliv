@@ -1,9 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11", "tnum";
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -11,24 +11,34 @@ body {
 .web-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-10) var(--space-4);
 }
 
 .web-hero {
   text-align: center;
-  padding: var(--space-8) var(--space-2);
+  padding: var(--space-10) var(--space-2);
+  position: relative;
 }
 .web-hero-logo {
   display: inline-flex;
   margin-bottom: var(--space-5);
+  filter: drop-shadow(0 0 32px var(--accent-glow));
+  animation: web-leaf-float 8s ease-in-out infinite;
+}
+@keyframes web-leaf-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(2deg); }
 }
 .web-hero-headline {
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   margin-bottom: var(--space-4);
-  color: var(--text);
+  background: linear-gradient(180deg, var(--text) 30%, color-mix(in oklab, var(--text) 60%, var(--accent)));
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
 }
 .web-hero-sub {
   font-size: 1.1rem;
@@ -37,28 +47,35 @@ body {
   margin: 0 auto var(--space-6);
 }
 .web-hero-cta {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--accent);
   text-decoration: none;
   font-weight: 500;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius);
-  transition: color var(--transition);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  transition: color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
 }
-.web-hero-cta:hover { color: var(--accent-hover); }
+.web-hero-cta:hover { color: var(--accent-hover); transform: translateY(-1px); }
 
 .web-section-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   text-align: center;
-  margin: var(--space-8) 0 var(--space-6);
+  margin: var(--space-10) 0 var(--space-6);
   color: var(--text);
 }
 
 .web-app-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-4);
 }
 .web-app-card {
@@ -68,20 +85,35 @@ body {
   text-align: center;
   gap: var(--space-2);
   padding: var(--space-6) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   text-decoration: none;
   position: relative;
-  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-sm);
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    border-color var(--dur-fast),
+    box-shadow var(--dur-base);
 }
-.web-app-card:hover { transform: translateY(-2px); border-color: currentColor; background: var(--surface-elevated); }
-.web-app-card.is-coming-soon { opacity: 0.55; cursor: not-allowed; }
-.web-app-card-leaf { color: currentColor; }
+.web-app-card:hover {
+  transform: translateY(-3px);
+  border-color: currentColor;
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-lg), 0 0 32px var(--accent-glow);
+}
+.web-app-card.is-coming-soon { opacity: 0.5; cursor: not-allowed; }
+.web-app-card.is-coming-soon:hover { transform: none; box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-sm); }
+.web-app-card-leaf {
+  color: currentColor;
+  filter: drop-shadow(0 0 16px var(--accent-glow));
+}
 .web-app-card-name {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text);
+  letter-spacing: -0.005em;
 }
 .web-app-card-tagline {
   font-size: 0.9rem;
@@ -89,35 +121,48 @@ body {
 }
 .web-app-card-badge {
   position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  font-size: 0.7rem;
+  top: var(--space-3);
+  right: var(--space-3);
+  font-size: 0.65rem;
   background: var(--surface-elevated);
   color: var(--text-muted);
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   font-weight: 600;
 }
 
 .web-manifesto {
-  margin-top: var(--space-8);
+  margin-top: var(--space-10);
 }
 .web-manifesto-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
+.web-manifesto-grid > div {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  transition: border-color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.web-manifesto-grid > div:hover { border-color: var(--accent-muted); transform: translateY(-1px); }
 .web-manifesto-grid h3 {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: var(--space-2);
+  letter-spacing: -0.005em;
 }
 .web-manifesto-grid p {
   color: var(--text-muted);
   font-size: 0.95rem;
+  line-height: 1.55;
 }
 
 .web-footer {
@@ -128,6 +173,10 @@ body {
   font-size: 0.85rem;
   color: var(--text-muted);
 }
-.web-footer a { color: inherit; text-decoration: underline; text-decoration-color: var(--border); }
+.web-footer a { color: inherit; text-decoration: underline; text-decoration-color: var(--border-subtle); transition: color var(--dur-fast); }
 .web-footer a:hover { color: var(--text); }
 .web-footer-divider { color: var(--text-faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  .web-hero-logo { animation: none; }
+}

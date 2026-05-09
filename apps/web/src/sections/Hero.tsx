@@ -11,7 +11,7 @@ export function Hero() {
         A coherent suite of dark-themed tools that run entirely in your browser.
         Convert, generate, validate — without sending a single byte to anyone.
       </p>
-      <a href="#apps" className="web-hero-cta">See the apps ↓</a>
+      <a href="#apps" className="web-hero-cta">See the apps&nbsp;↓</a>
     </section>
   );
 }
