@@ -9,6 +9,8 @@ import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
 import { LogoEcWarning } from './components/LogoEcWarning';
 import { ExportPanel } from './components/ExportPanel';
+import { ScannabilityNotice } from './components/ScannabilityNotice';
+import { assess } from './lib/scannability';
 import { ContentTabs } from './content/ContentTabs';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
@@ -44,6 +46,8 @@ export default function App() {
     data: built.ok ? (built.value ?? '') : ' ',
     errorCorrection: autoBump ? 'H' : options.errorCorrection,
   };
+
+  const scannability = assess(effectiveOptions);
 
   function handleEcChange(level: QrOptions['errorCorrection']) {
     setUserTouchedEc(true);
@@ -82,6 +86,7 @@ export default function App() {
           />
           <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
           <LogoEcWarning show={autoBump} />
+          <ScannabilityNotice result={scannability} />
           <div className="qr-control-group">
             <h3>Format</h3>
             <ErrorCorrectionPicker
