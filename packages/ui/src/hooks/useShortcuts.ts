@@ -30,8 +30,12 @@ function matches(event: KeyboardEvent, keys: string): boolean {
   const ctrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
 
   if (wantsCtrl !== ctrlOrCmd) return false;
-  if (wantsShift !== event.shiftKey) return false;
   if (wantsAlt !== event.altKey) return false;
+
+  // For shifted-symbol keys like '?', the user must press Shift on most layouts;
+  // we ignore the Shift mismatch so that registering "?" matches the natural key combo.
+  const isShiftedSymbol = key === '?';
+  if (!isShiftedSymbol && wantsShift !== event.shiftKey) return false;
 
   const eventKey = event.key.toLowerCase();
   if (key === 'enter') return eventKey === 'enter';
