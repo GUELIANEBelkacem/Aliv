@@ -4,7 +4,20 @@
 :root[data-app="hashgen"]  { --accent: #f59e0b; }
 
 :root {
-  --accent-hover: color-mix(in oklch, var(--accent) 90%, white);
-  --accent-muted: color-mix(in oklch, var(--accent) 40%, transparent);
-  --accent-glow:  color-mix(in oklch, var(--accent) 50%, transparent);
+  --accent-hover:  color-mix(in oklch, var(--accent) 85%, white);
+  --accent-active: color-mix(in oklch, var(--accent) 70%, black);
+  --accent-muted:  color-mix(in oklch, var(--accent) 30%, transparent);
+  --accent-soft:   color-mix(in oklch, var(--accent) 12%, transparent);
+  --accent-glow:   color-mix(in oklch, var(--accent) 55%, transparent);
+  --accent-ring:   color-mix(in oklch, var(--accent) 35%, transparent);
+}
+
+/* Ambient background — every app gets a soft accent-tinted aurora */
+body.aliv-ambient {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, var(--accent-soft), transparent 60%),
+    radial-gradient(ellipse 100% 60% at 100% 100%, color-mix(in oklab, var(--accent) 6%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
 }

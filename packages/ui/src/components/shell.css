@@ -2,9 +2,28 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11", "tnum";
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  z-index: 0;
+}
+
+/* Glass utility — used by header, panels, popovers */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-md);
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-lg);
 }
 
 .aliv-shell-header {
@@ -12,11 +31,22 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  height: 56px;
+  padding: var(--space-3) var(--space-5);
+  height: 60px;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--glass-bg), var(--glass-bg)),
+    linear-gradient(90deg, transparent 0%, var(--border) 30%, var(--border) 70%, transparent 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 
 .aliv-shell-brand { display: flex; align-items: center; gap: var(--space-3); }
@@ -27,75 +57,104 @@
   gap: var(--space-2);
   color: var(--accent);
   text-decoration: none;
+  filter: drop-shadow(0 0 0 transparent);
+  transition: filter var(--dur-base) var(--ease-out), color var(--dur-fast);
 }
-.aliv-brand-link:hover { color: var(--accent-hover); }
+.aliv-brand-link:hover {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 14px var(--accent-glow));
+}
 
 .aliv-wordmark {
   font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 
 .aliv-brand-divider {
   color: var(--text-faint);
   font-weight: 300;
+  user-select: none;
 }
 
 .aliv-app-name {
   color: var(--text-muted);
   font-size: 0.95rem;
   font-weight: 500;
+  letter-spacing: -0.005em;
 }
 
-.aliv-shell-actions { display: flex; align-items: center; gap: var(--space-1); }
+.aliv-shell-actions { display: flex; align-items: center; gap: 2px; }
 
 .aliv-shell-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .aliv-shell-footer {
-  border-top: 1px solid var(--border);
-  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-3) var(--space-5);
   font-size: 0.85rem;
   color: var(--text-muted);
-  background: var(--surface);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
+/* Buttons — gain inner highlight + scale-on-press + bigger radius */
 .aliv-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: 32px;
-  padding: 0 var(--space-3);
+  height: 36px;
+  padding: 0 var(--space-4);
   border-radius: var(--radius);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-base) var(--ease-out);
   border: 1px solid transparent;
+  white-space: nowrap;
 }
-.aliv-btn:hover:not(:disabled) { transform: translateY(-1px); }
-.aliv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.aliv-btn:active:not(:disabled) { transform: scale(0.97); }
+.aliv-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.aliv-btn:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
 
 .aliv-btn-primary {
-  background: var(--accent);
-  color: #0c0d12;
-  box-shadow: 0 0 0 0 var(--accent-glow);
+  background: linear-gradient(180deg, var(--accent-hover), var(--accent));
+  color: #0a0b10;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 1px 2px rgba(0,0,0,0.4),
+    0 0 0 0 var(--accent-glow);
 }
 .aliv-btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  box-shadow: 0 4px 16px var(--accent-glow);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 4px 16px var(--accent-glow),
+    0 1px 2px rgba(0,0,0,0.4);
 }
 
 .aliv-btn-secondary {
-  background: transparent;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   color: var(--text);
-  border-color: var(--border);
+  border-color: var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 .aliv-btn-secondary:hover:not(:disabled) {
   background: var(--surface-elevated);
-  border-color: var(--text-faint);
+  border-color: var(--border);
 }
 
 .aliv-btn-ghost {
@@ -111,21 +170,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-muted);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-  font-size: 1rem;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
 }
 .aliv-icon-btn:hover {
   background: var(--surface-elevated);
   color: var(--text);
 }
+.aliv-icon-btn:active { transform: scale(0.92); }
+.aliv-icon-btn:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+.aliv-icon-btn svg { width: 18px; height: 18px; stroke-width: 1.75; }
 
+/* Overlays */
 .aliv-drawer-root,
 .aliv-modal-root,
 .aliv-popover-root {
@@ -139,26 +204,36 @@
 .aliv-popover-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: aliv-fade-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes aliv-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .aliv-drawer {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: min(380px, 100vw);
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  padding: var(--space-5);
+  width: min(420px, 100vw);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border-left: 1px solid var(--glass-border);
+  padding: var(--space-6);
   overflow-y: auto;
-  animation: aliv-drawer-in 0.2s ease;
+  animation: aliv-drawer-in var(--dur-slow) var(--ease-out);
+  box-shadow: var(--shadow-xl);
 }
 .aliv-drawer-right { right: 0; }
-.aliv-drawer-left { left: 0; border-left: none; border-right: 1px solid var(--border); }
+.aliv-drawer-left { left: 0; border-left: none; border-right: 1px solid var(--glass-border); }
 
 @keyframes aliv-drawer-in {
-  from { transform: translateX(20px); opacity: 0; }
+  from { transform: translateX(40px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
@@ -167,54 +242,80 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  min-width: 320px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  min-width: 360px;
   max-width: 90vw;
   max-height: 80vh;
   overflow-y: auto;
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-xl);
+  animation: aliv-modal-in var(--dur-slow) var(--ease-spring);
 }
 
-.aliv-shortcuts-modal h2 { margin: 0 0 var(--space-4) 0; font-size: 1.1rem; }
+@keyframes aliv-modal-in {
+  from { transform: translate(-50%, -48%) scale(0.96); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.aliv-shortcuts-modal h2 {
+  margin: 0 0 var(--space-5) 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .aliv-shortcuts-list { list-style: none; padding: 0; margin: 0; }
 .aliv-shortcuts-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-2) 0;
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 .aliv-shortcuts-list li:last-child { border-bottom: none; }
 .aliv-shortcuts-list kbd {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  padding: 2px var(--space-2);
+  font-size: 0.78rem;
+  padding: 3px var(--space-2);
   background: var(--surface-elevated);
   border: 1px solid var(--border);
+  border-bottom-width: 2px;
   border-radius: var(--radius-sm);
   color: var(--text);
+  letter-spacing: 0;
+  font-feature-settings: "tnum";
 }
 .aliv-shortcuts-list span { color: var(--text-muted); }
 
 .aliv-app-switcher {
   position: absolute;
   right: var(--space-4);
-  top: 64px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  min-width: 360px;
+  top: 68px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  min-width: 380px;
   max-width: 90vw;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-xl);
+  animation: aliv-popover-in var(--dur-base) var(--ease-spring);
 }
+
+@keyframes aliv-popover-in {
+  from { transform: translateY(-8px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
 .aliv-app-switcher h3 {
-  margin: 0 0 var(--space-3) 0;
-  font-size: 0.85rem;
+  margin: 0 0 var(--space-4) 0;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -226,27 +327,40 @@
 }
 @media (max-width: 480px) {
   .aliv-app-grid { grid-template-columns: repeat(2, 1fr); }
-  .aliv-app-switcher { right: var(--space-2); left: var(--space-2); }
+  .aliv-app-switcher { right: var(--space-2); left: var(--space-2); min-width: 0; }
 }
 
 .aliv-app-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border-radius: var(--radius);
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  border-radius: var(--radius-lg);
   text-decoration: none;
   color: inherit;
   position: relative;
   border: 1px solid transparent;
-  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-base);
 }
-.aliv-app-tile:hover { background: var(--surface-elevated); transform: translateY(-1px); }
-.aliv-app-tile.is-current { border-color: currentColor; }
-.aliv-app-tile.is-coming-soon { opacity: 0.55; cursor: not-allowed; }
+.aliv-app-tile:hover {
+  background: var(--surface-elevated);
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--glass-border), 0 8px 24px rgba(0,0,0,0.3);
+}
+.aliv-app-tile.is-current {
+  border-color: currentColor;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.aliv-app-tile.is-coming-soon { opacity: 0.5; cursor: not-allowed; }
+.aliv-app-tile.is-coming-soon:hover { transform: none; box-shadow: none; }
+
 .aliv-app-tile-name {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
 }
@@ -254,18 +368,26 @@
   font-size: 0.72rem;
   color: var(--text-faint);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .aliv-app-tile-badge {
   position: absolute;
-  top: var(--space-1);
-  right: var(--space-1);
+  top: var(--space-2);
+  right: var(--space-2);
   font-size: 0.6rem;
   background: var(--surface-elevated);
   color: var(--text-muted);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .aliv-shell-header {
+    padding: var(--space-2) var(--space-3);
+    height: 56px;
+  }
+  .aliv-brand-divider, .aliv-app-name { display: none; }
 }

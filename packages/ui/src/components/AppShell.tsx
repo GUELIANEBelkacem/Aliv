@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Keyboard, Settings, LayoutGrid } from 'lucide-react';
 import { Drawer } from './Drawer';
 import { ShortcutsModal } from './ShortcutsModal';
 import { AppSwitcher } from './AppSwitcher';
@@ -35,6 +36,7 @@ export function AppShell({
 
   useEffect(() => {
     document.documentElement.dataset.app = appId;
+    document.body.classList.add('aliv-ambient');
   }, [appId]);
 
   const composedShortcuts: Shortcut[] = [
@@ -59,15 +61,15 @@ export function AppShell({
         </div>
         <div className="aliv-shell-actions">
           <IconButton label="Keyboard shortcuts" onClick={() => setShortcutsOpen(true)}>
-            <span aria-hidden="true">{'⌘'}</span>
+            <Keyboard aria-hidden="true" />
           </IconButton>
           {settings && (
             <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
-              <span aria-hidden="true">{'⚙️'}</span>
+              <Settings aria-hidden="true" />
             </IconButton>
           )}
           <IconButton label="App switcher" onClick={() => setSwitcherOpen(true)}>
-            <span aria-hidden="true">{'▦'}</span>
+            <LayoutGrid aria-hidden="true" />
           </IconButton>
           <ThemeToggle />
         </div>

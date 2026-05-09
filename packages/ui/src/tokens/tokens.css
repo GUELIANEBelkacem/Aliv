@@ -1,21 +1,41 @@
 :root {
-  --bg: #0c0d12;
+  /* Surfaces */
+  --bg: #0a0b10;
   --surface: #14161e;
   --surface-elevated: #1a1d27;
   --border: #2a2e3d;
   --border-subtle: #1f2230;
 
+  /* Text */
   --text: #e9eaef;
   --text-muted: #9ea3b3;
   --text-faint: #5d6276;
 
+  /* Status */
   --danger: #ef4444;
   --warning: #f59e0b;
   --success: #4ade80;
 
-  --radius-sm: 4px;
-  --radius: 6px;
-  --radius-lg: 10px;
+  /* Glass — translucent layers with frosted blur */
+  --glass-bg:        color-mix(in oklab, var(--surface) 65%, transparent);
+  --glass-bg-strong: color-mix(in oklab, var(--surface-elevated) 80%, transparent);
+  --glass-border:    color-mix(in oklab, white 8%, transparent);
+  --glass-highlight: color-mix(in oklab, white 7%, transparent);
+  --glass-blur:      saturate(180%) blur(20px);
+  --glass-blur-strong: saturate(200%) blur(32px);
+
+  /* Layered shadows — never use a single flat shadow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3);
+  --shadow-xl: 0 24px 80px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.35);
+
+  /* Geometry — larger radii throughout, more modern */
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -23,19 +43,49 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 56px;
+
+  /* Motion — single vocabulary, used everywhere */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 400ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --transition: 0.15s ease;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", Consolas, monospace;
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", "Fira Code", Consolas, monospace;
+  font-feature-settings: "ss01", "cv11", "tnum";
 }
 
 :root[data-theme="light"] {
-  --bg: #fafbfc;
+  --bg: #f7f8fb;
   --surface: #ffffff;
-  --surface-elevated: #f4f5f7;
-  --border: #d8dbe2;
-  --border-subtle: #e7e9ee;
+  --surface-elevated: #f4f5f8;
+  --border: #e1e4eb;
+  --border-subtle: #ebedf2;
   --text: #1a1d27;
   --text-muted: #5d6276;
   --text-faint: #9ea3b3;
+
+  --glass-bg:        color-mix(in oklab, var(--surface) 75%, transparent);
+  --glass-bg-strong: color-mix(in oklab, var(--surface) 90%, transparent);
+  --glass-border:    color-mix(in oklab, black 6%, transparent);
+  --glass-highlight: color-mix(in oklab, white 60%, transparent);
+
+  --shadow-sm: 0 1px 2px rgba(20,30,60,0.08);
+  --shadow-md: 0 4px 12px rgba(20,30,60,0.08), 0 1px 2px rgba(20,30,60,0.06);
+  --shadow-lg: 0 12px 40px rgba(20,30,60,0.10), 0 2px 6px rgba(20,30,60,0.06);
+  --shadow-xl: 0 24px 80px rgba(20,30,60,0.12), 0 4px 12px rgba(20,30,60,0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
