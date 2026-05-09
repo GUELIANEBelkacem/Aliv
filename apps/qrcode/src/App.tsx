@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type QRCodeStyling from 'qr-code-styling';
-import { AppShell } from '@aliv/ui';
+import { AppShell, type Shortcut } from '@aliv/ui';
+import { copyPngToClipboard } from './lib/export';
+import { CONTENT_TYPE_ORDER } from './content/order';
 import { QrPreview } from './components/QrPreview';
 import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
 import { SizeMarginControls } from './components/SizeMarginControls';
@@ -21,6 +23,11 @@ import type { ContentData, ContentType } from './content/types';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
 
 const LARGE_LOGO_THRESHOLD = 0.2;
+
+const SHORTCUTS_LIST = [
+  { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
+  { keys: 'Ctrl+Shift+S', description: 'Next content type' },
+];
 
 export default function App() {
   const [contentType, setContentType] = useState<ContentType>('url');
@@ -66,8 +73,27 @@ export default function App() {
     setUserTouchedEc(false);
   }
 
+  const cycleContent = useCallback(() => {
+    const idx = CONTENT_TYPE_ORDER.indexOf(contentType);
+    setContentType(CONTENT_TYPE_ORDER[(idx + 1) % CONTENT_TYPE_ORDER.length]);
+  }, [contentType]);
+
+  const copyPng = useCallback(async () => {
+    if (qrRef.current) await copyPngToClipboard(qrRef.current);
+  }, []);
+
+  const shortcuts: Shortcut[] = [
+    { keys: 'Ctrl+Shift+C', handler: copyPng, whenInInput: true, description: 'Copy PNG' },
+    { keys: 'Ctrl+Shift+S', handler: cycleContent, whenInInput: true, description: 'Next content type' },
+  ];
+
   return (
-    <AppShell appId="qrcode" settings={<QrSettings onApplyPreset={handleApplyPreset} onReset={handleReset} />}>
+    <AppShell
+      appId="qrcode"
+      shortcuts={shortcuts}
+      shortcutsList={SHORTCUTS_LIST}
+      settings={<QrSettings onApplyPreset={handleApplyPreset} onReset={handleReset} />}
+    >
       <div className="qr-app">
         <div className="qr-controls">
           <div className="qr-control-group">
