@@ -1,109 +1,126 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-This repository is being transformed into **Aliv** — a multi-app platform of privacy-first, no-upload, dark-themed web utilities. Each utility is a standalone app on its own subdomain, but all apps share one visual identity, navigation, and shell (Google-suite style with an app switcher).
+**Aliv** is a multi-app platform of privacy-first, no-upload, dark-themed
+web utilities. Each app lives on its own subdomain in production
+(`jsonxml.aliv.<tld>`, `qrcode.aliv.<tld>`, etc.) and shares a single
+visual identity, header, theme, and app-switcher chrome via
+`@aliv/ui`'s `AppShell`.
 
-The current `JsonToXML/` directory is the first app in the platform. It will be moved to `apps/json-xml/` once the monorepo refactor (Phase 0) is done. The shared design system, app shell, app switcher, and brand assets will live in `packages/ui/`.
+As of v0.1.0 the platform ships with three apps:
+- `apps/json-xml` — JSON ↔ XML converter (the original tool, refactored)
+- `apps/qrcode` — customizable QR generator (9 content types, gradients,
+  shapes, logo embed, PNG/SVG export)
+- `apps/web` — apex landing page that lists every Aliv app
 
-## Platform & Roadmap Documents
+A fourth app, `hashgen`, is registered as `comingSoon` and the queued
+next build.
 
-- **`PLATFORM_BUILD_PLAN.md`** — **master execution plan**. Detailed, phase-by-phase steps for the monorepo refactor (Part A: Phases 0.1–0.8) and the QR code generator (Part B: Phases Q.0–Q.11). Includes file deliverables, test targets, acceptance criteria, risks. Work proceeds from this document.
-- **`ALIV_PLATFORM.md`** — platform vision + decisions log: brand, subdomain model, monorepo layout, app switcher spec, unified `AppShell`.
-- **`UTILITY_RESEARCH_REPORT.md`** — market research, 28 utility ideas, differentiators, difficulty ratings.
-- **`NEXT_STEPS.md`** — high-level roadmap (superseded for QR/platform work by `PLATFORM_BUILD_PLAN.md`).
+## Layout
 
-Brand assets currently live at `C:\Users\moham\Desktop\projects\Design\` (PNG logo, paint.net source). PNG-to-SVG conversion is Phase 0.3 of the build plan.
+```
+aliv/
+├── apps/
+│   ├── json-xml/          # @aliv/json-xml
+│   ├── qrcode/            # @aliv/qrcode
+│   └── web/               # @aliv/web (apex landing)
+├── packages/
+│   ├── ui/                # @aliv/ui — shared chrome (AppShell,
+│   │                      #          AppSwitcher, Logo, Drawer,
+│   │                      #          ShortcutsModal, theme store,
+│   │                      #          tokens.css, accents.css, registry)
+│   └── e2e/               # @aliv/e2e — Playwright suite spanning all 3 apps
+├── docs/local-subdomains.md  # cross-subdomain cookie sync setup
+├── ALIV_PLATFORM.md       # platform vision + decisions log
+├── PLATFORM_BUILD_PLAN.md # phase-by-phase build plan (executed)
+├── BASELINE.md            # pre-refactor snapshot (Phase 0.1)
+├── README.md              # contributor README
+├── package.json           # workspace root
+├── pnpm-workspace.yaml
+└── tsconfig.base.json     # strict TS baseline; per-app tsconfigs extend it
+```
 
-## Commands
+## Tooling
 
-All commands must be run from the `JsonToXML/` directory:
+- pnpm 9 workspaces
+- React 19 + Vite 8 + Vitest 4
+- TypeScript strict, eslint flat config, no preprocessor
+- jsdom + @testing-library/react for unit tests
+- Playwright (chromium) for e2e
+
+## Commands (run from repo root)
 
 ```bash
-npm run dev         # Start dev server with HMR
-npm run build       # TypeScript check + Vite production build
-npm run lint        # ESLint (flat config, TS/TSX files only)
-npm run test        # Run all unit tests (vitest)
-npm run test:watch  # Run tests in watch mode
-npm run preview     # Preview production build locally
+pnpm install              # all workspaces
+pnpm dev                  # alias for json-xml dev server
+pnpm dev:json | dev:qr | dev:web
+pnpm -r build             # build every app
+pnpm -r test              # all unit tests
+pnpm -r lint
+pnpm -r typecheck
+pnpm e2e                  # Playwright suite (requires `pnpm -r build` first)
 ```
 
-## Architecture
+Filter to a single workspace: `pnpm --filter @aliv/qrcode test`.
 
-- **Vite 8** with `@vitejs/plugin-react` and **React Compiler** enabled via `@rolldown/plugin-babel` + `babel-plugin-react-compiler`
-- **React 19** with TypeScript ~5.9
-- **fast-xml-parser** for all JSON↔XML conversion and XML validation
-- **CodeMirror 6** for syntax-highlighted editors with custom dark/light highlight themes using `@lezer/highlight` tags
-- **Vitest** for unit testing (201 tests across 7 files)
-- ESLint flat config (`eslint.config.js`) with `typescript-eslint`, `react-hooks`, and `react-refresh`
-- TypeScript project references: `tsconfig.json` → `tsconfig.app.json` + `tsconfig.node.json`
-- CSS uses native nesting with CSS custom properties for dark-first theming (no preprocessor)
+## Architecture decisions
 
-## Module Structure
+- **Shared chassis, per-app accent.** `packages/ui/src/tokens/tokens.css`
+  defines bg/surface/border/text/spacing/type. `accents.css` defines
+  the per-app `--accent` keyed by `data-app="<id>"` on `<html>`. The
+  leaf logo in the header inherits via `currentColor`.
+- **One AppShell to rule them.** Every app wraps its content in
+  `<AppShell appId="..." settings={...} shortcuts={...}>`. The shell
+  owns header chrome, theme toggle, settings drawer, shortcuts modal,
+  and app switcher.
+- **App registry is the source of truth.**
+  `packages/ui/src/registry/app-registry.ts` lists every app
+  (`web` / `json-xml` / `qrcode` / `hashgen`) with its accent and
+  subdomain. Both `AppSwitcher` and `apps/web/AppGrid` consume it; any
+  change ripples everywhere.
+- **No backend.** Every transformation runs in-browser. Theme is the
+  only shared cross-app state; it's stored in an apex-domain cookie
+  (with a localStorage fallback) so subdomain navigation preserves
+  light/dark.
 
-```
-src/
-├── main.tsx                        # Entry point
-├── App.tsx                         # Root layout, swap/keyboard shortcuts, mobile tabs, settings context
-├── App.css                         # (minimal, styles are in index.css)
-├── index.css                       # Full design system: colors, buttons, layout, responsive, animations
-├── types/
-│   └── settings.ts                 # AppSettings, ConversionOptions, ConversionResult types + defaults
-├── lib/
-│   ├── converter.ts                # xmlToJson() / jsonToXml() wrapping fast-xml-parser
-│   ├── formatter.ts                # prettifyJson/Xml, minifyJson/Xml
-│   └── validator.ts                # Pre-parse validation with line/column error extraction
-├── hooks/
-│   ├── useSettings.ts              # Settings state + localStorage persistence + SettingsContext
-│   ├── useAutoDetect.ts            # Heuristic format detection (JSON vs XML vs unknown)
-│   └── useConversion.ts            # Debounced auto-conversion (300ms), manual trigger, timing measurement
-├── components/
-│   ├── EditorPanel.tsx             # CodeMirror 6 wrapper with dual dark/light syntax themes, drag-drop
-│   ├── Toolbar.tsx                 # Two-row toolbar: brand+direction row, actions row. Button variants (primary/secondary/ghost)
-│   ├── StatusBar.tsx               # Error display, format badge, input size, conversion timing
-│   └── SettingsDrawer.tsx          # Slide-out panel with CSS toggle switches, help text, styled selects
-└── __tests__/
-    ├── helpers.ts                  # Default options factory for tests
-    ├── xmlToJson.test.ts           # 68 tests
-    ├── jsonToXml.test.ts           # 50 tests
-    ├── roundtrip.test.ts           # 21 tests
-    ├── formatter.test.ts           # 27 tests
-    ├── validator.test.ts           # 17 tests
-    ├── autodetect.test.ts          # 10 tests
-    └── options.test.ts             # 8 tests
-```
+## Adding a new app
 
-## Design System
+1. Copy `apps/web/` to `apps/<id>/` as the smallest baseline.
+2. Edit `package.json`: rename to `@aliv/<id>`; keep the
+   `"@aliv/ui": "workspace:*"` dep.
+3. In `main.tsx` import `@aliv/ui/{tokens,accents,shell}.css` before
+   the app's own CSS.
+4. Wrap the body in `<AppShell appId="<id>">`. Register the new app id
+   in `packages/ui/src/registry/app-registry.ts`. Set its accent.
+5. `pnpm install` (workspace symlink) then run tests.
 
-- **Dark-first**: Default theme is dark (`#0c0d12` background). Light theme available via settings. Respects `prefers-color-scheme` with manual override via `data-theme` attribute on `<html>`.
-- **Color tokens**: All colors are CSS custom properties defined in `:root` in `index.css`. Dark palette uses deep blue-black backgrounds with `#7c8cf5` accent. Light palette recalibrates all tokens.
-- **Button variants**: Three tiers — `.btn-primary` (filled accent with glow), `.btn-secondary` (bordered), `.btn-ghost` (no border). All buttons: 32px height, 6px radius, 0.15s transitions, lift on hover.
-- **Editor syntax**: Custom `HighlightStyle` objects (dark: Dracula-inspired, light: matching light palette) applied via `syntaxHighlighting()`. Both are registered simultaneously — CSS variables handle the rest.
-- **Favicon**: Custom SVG combining `{ }` brace (amber) + `< >` bracket (accent blue) + center arrow.
+## Phase log
 
-## Key Features
+Every phase landed as a single conventional-commit on the
+`phase/0.1-preflight` branch. Refer to git history for the boundaries.
+The plan that drove these is `PLATFORM_BUILD_PLAN.md`.
 
-- **Swap button**: Center divider between panels has a circular swap button (⇄) that moves output→input and flips direction.
-- **Inline copy feedback**: Copy button morphs to checkmark + "Copied!" for 1.5s instead of a floating toast.
-- **Keyboard shortcuts**: `Ctrl+Enter` (convert), `Ctrl+Shift+C` (copy), `Ctrl+Shift+S` (swap), `Ctrl+Shift+B` (beautify), `Ctrl+Shift+M` (minify), `Ctrl+,` (settings).
-- **Mobile layout**: Below 768px, panels switch to a tabbed layout (Input/Output tabs) instead of side-by-side. Toolbar buttons drop text labels. Settings drawer goes full-width.
-- **Conversion timing**: Status bar shows "Converted in Xms" after each conversion.
-- **Settings drawer**: Custom CSS toggle switches (not native checkboxes), help text under each option, backdrop blur overlay.
+## Test totals
 
-## Conversion Design Decisions
+| Workspace | Unit tests |
+|---|---|
+| @aliv/ui | 50 |
+| @aliv/json-xml | 201 |
+| @aliv/web | 7 |
+| @aliv/qrcode | 124 |
+| **Total unit** | **382** |
+| @aliv/e2e (Playwright) | 25 specs |
 
-- **Attribute convention**: XML attributes prefixed with `@_` in JSON (configurable). Text content uses `#text`.
-- **Auto-detection**: Input format sniffed by first non-whitespace character (`{`/`[` → JSON, `<` → XML).
-- **Settings persistence**: All settings stored in `localStorage` under key `jsontoxml-settings`.
-- **Default theme**: `dark` (changed from `system` — dev tool convention).
+## Performance budgets (current)
 
-## Conversion Edge Cases
+| App | JS gzipped | LCP target |
+|---|---|---|
+| json-xml | 224 KB (CodeMirror dominates — known) | < 2.5s |
+| qrcode | 86 KB | < 2.5s |
+| web | 64 KB | < 2.5s |
 
-Structural mismatches handled by configuration toggles:
-- Repeated XML siblings → JSON arrays (single elements stay scalar unless "always array" is on)
-- JSON arrays → repeated `<item>` siblings wrapped in `<root>`
-- Primitive top-level JSON values → wrapped in `<root>` with `#text`
-- XML type inference (string→number/boolean) off by default, toggleable
-- XML comments and declarations stripped by default, toggleable
+The json-xml gzipped JS overshoots the 200 KB budget; mitigation is
+deferred (likely via dynamic import of CodeMirror's larger packages).
