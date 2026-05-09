@@ -158,6 +158,36 @@ body {
 }
 .qr-banner.is-fail { border-left-color: var(--danger); }
 
+.qr-drop-zone {
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.qr-drop-zone.is-drag-over { border-color: var(--accent); color: var(--accent); }
+.qr-logo-preview {
+  max-width: 100%;
+  max-height: 80px;
+  display: block;
+  margin: 0 auto;
+}
+.qr-clear-logo {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
 @media (max-width: 768px) {
   .qr-app {
     flex-direction: column;

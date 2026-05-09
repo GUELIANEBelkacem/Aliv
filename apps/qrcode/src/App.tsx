@@ -6,13 +6,30 @@ import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
 import { SizeMarginControls } from './components/SizeMarginControls';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
+import { LogoControls } from './components/LogoControls';
+import { LogoEcWarning } from './components/LogoEcWarning';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
+
+const LARGE_LOGO_THRESHOLD = 0.2;
 
 export default function App() {
   const [options, setOptions] = useState<QrOptions>(DEFAULT_QR_OPTIONS);
+  const [userTouchedEc, setUserTouchedEc] = useState(false);
 
   function update(patch: Partial<QrOptions>) {
     setOptions((prev) => ({ ...prev, ...patch }));
+  }
+
+  const bigLogo = !!(options.logo && options.logo.sizeRatio > LARGE_LOGO_THRESHOLD);
+  const autoBump = bigLogo && !userTouchedEc && options.errorCorrection !== 'H';
+  const effectiveOptions: QrOptions = autoBump
+    ? { ...options, errorCorrection: 'H' }
+    : options;
+  const displayedEc = effectiveOptions.errorCorrection;
+
+  function handleEcChange(level: QrOptions['errorCorrection']) {
+    setUserTouchedEc(true);
+    update({ errorCorrection: level });
   }
 
   return (
@@ -36,11 +53,13 @@ export default function App() {
             onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
             onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
           />
+          <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
+          <LogoEcWarning show={autoBump} />
           <div className="qr-control-group">
             <h3>Format</h3>
             <ErrorCorrectionPicker
-              value={options.errorCorrection}
-              onChange={(errorCorrection) => update({ errorCorrection })}
+              value={displayedEc}
+              onChange={handleEcChange}
             />
             <SizeMarginControls
               size={options.size}
@@ -50,7 +69,7 @@ export default function App() {
             />
           </div>
         </div>
-        <QrPreview options={options} />
+        <QrPreview options={effectiveOptions} />
       </div>
     </AppShell>
   );
