@@ -4,6 +4,7 @@ import { QrPreview } from './components/QrPreview';
 import { ContentInput } from './components/ContentInput';
 import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
 import { SizeMarginControls } from './components/SizeMarginControls';
+import { ColorControls } from './components/ColorControls';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
 
 export default function App() {
@@ -18,6 +19,14 @@ export default function App() {
       <div className="qr-app">
         <div className="qr-controls">
           <ContentInput value={options.data} onChange={(data) => update({ data })} />
+          <ColorControls
+            foreground={options.foreground}
+            background={options.background}
+            eyeColor={options.eyeColor}
+            onForegroundChange={(foreground) => update({ foreground })}
+            onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
+            onEyeColorChange={(eyeColor) => update({ eyeColor })}
+          />
           <div className="qr-control-group">
             <h3>Format</h3>
             <ErrorCorrectionPicker
