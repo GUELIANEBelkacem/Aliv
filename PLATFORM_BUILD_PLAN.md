@@ -17,7 +17,8 @@ This is the working document for transforming the current `JsonToXML` repo into 
 3. **Re-skin** JSON↔XML to consume the shared shell and use its assigned indigo accent (`#7c8cf5`), without regressing the existing 201 tests.
 4. **Ship a platform landing** (`apps/web`) at the apex domain that lists all apps.
 5. **Ship the QR Code Generator** (`apps/qrcode`) with the full v1 feature set: all content types, gradients, logo embedding, PNG/SVG/clipboard export, and a marketing landing page.
-6. Reach a test count of **≥ 350 passing tests** across the monorepo at the end of this plan.
+6. Reach a test count of **≥ 350 passing unit tests** across the monorepo at the end of this plan.
+7. **Real-browser end-to-end coverage** via Playwright (`packages/e2e`, ~25 specs spanning all three apps) so launch is gated on automated user-journey tests, not just unit tests + a manual checklist.
 
 ### Non-goals
 - Hash generator (queued for after this plan completes)
@@ -1005,6 +1006,109 @@ apps/qrcode/src/
 
 ---
 
+# Part C — End-to-end coverage
+
+## Phase E.1 — Playwright e2e suite
+
+**Goal**: Real-browser, multi-app end-to-end coverage so the launch is gated on something stronger than unit tests + a manual checklist. Replaces most of the manual smoke pass that was originally in Q.11.
+
+**Why a separate phase / Part C?** E2E sits above all three apps and runs against real builds — it doesn't belong inside any single app workspace. Treating it as its own workspace package (`packages/e2e`) keeps app deps clean and lets the suite be run independently in CI (`pnpm --filter @aliv/e2e test:e2e`).
+
+**File deliverables**
+```
+packages/e2e/
+├── package.json                # @aliv/e2e, devDeps: @playwright/test
+├── playwright.config.ts        # 3 projects: chromium, firefox, webkit
+├── tsconfig.json
+├── fixtures/
+│   ├── server.ts               # spins up vite preview for each app on fixed ports
+│   └── theme.ts                # cookie helpers for cross-app theme tests
+├── tests/
+│   ├── shell/
+│   │   ├── app-switcher.spec.ts        # opens switcher in each app, links open in new tab
+│   │   ├── theme-toggle.spec.ts        # toggles theme, asserts data-theme attr + persistence
+│   │   ├── shortcuts-modal.spec.ts     # `?` opens modal, `Esc` closes
+│   │   └── settings-drawer.spec.ts     # opens, persists, closes on backdrop
+│   ├── json-xml/
+│   │   ├── conversion.spec.ts          # paste JSON → see XML, swap, copy, clear
+│   │   ├── validation-errors.spec.ts   # invalid input → status bar shows line/col
+│   │   ├── settings.spec.ts            # toggle attribute prefix, format mode
+│   │   └── mobile.spec.ts              # 375×812 viewport, tabs, no horizontal overflow
+│   ├── qrcode/
+│   │   ├── generate-text.spec.ts       # text → QR svg renders → download PNG
+│   │   ├── generate-wifi.spec.ts       # fill Wi-Fi form → QR encodes WIFI: string
+│   │   ├── generate-vcard.spec.ts      # vCard form → QR encodes BEGIN:VCARD
+│   │   ├── colors-shapes.spec.ts       # change color/shape → preview updates
+│   │   ├── logo-upload.spec.ts         # drop logo → EC auto-bumps to H, banner shows
+│   │   ├── export.spec.ts              # PNG download triggers, SVG download triggers, copy works
+│   │   └── presets.spec.ts             # apply preset → options reflect
+│   ├── web/
+│   │   ├── home.spec.ts                # hero + app grid render, every app linked
+│   │   └── seo.spec.ts                 # meta + og + structured data present
+│   └── cross-app/
+│       └── theme-cookie.spec.ts        # set theme on one app, navigate to another, theme persists
+└── README.md                   # how to run, how to debug, how to add tests
+```
+
+**Steps**
+
+### E.1.a — Scaffold
+1. Branch `phase/e.1-playwright`.
+2. `mkdir -p packages/e2e/{tests,fixtures}`.
+3. `pnpm --filter @aliv/e2e add -D @playwright/test`.
+4. `pnpm exec playwright install --with-deps chromium firefox webkit` (CI installs only chromium by default; full set on demand).
+5. Add root scripts to `package.json`:
+   ```jsonc
+   {
+     "scripts": {
+       "e2e":         "pnpm --filter @aliv/e2e test:e2e",
+       "e2e:ui":      "pnpm --filter @aliv/e2e test:e2e:ui",
+       "e2e:debug":   "pnpm --filter @aliv/e2e test:e2e:debug"
+     }
+   }
+   ```
+
+### E.1.b — Test server fixture
+1. `fixtures/server.ts` builds each app once (`vite build`) then runs `vite preview` on fixed ports — `4001` (json-xml), `4002` (qrcode), `4003` (web). Lifecycle: start before suite, stop after.
+2. Use Playwright's `webServer` config (multiple entries supported) so tests don't need to manage processes themselves.
+3. Each spec has a `BASE` constant pointing at its app's port. No tests cross-app-navigate via real DNS; cross-app theme test uses `localStorage` + same-origin nav under the apex setup.
+
+### E.1.c — Shell tests (run against each app)
+- Test factory pattern: a single `defineShellTests(appBaseUrl, appName, accent)` produces the same suite for every app, parameterized by URL.
+- Asserts: app name in header, leaf has expected accent (computed style), switcher opens, all 3 apps listed, theme toggle round-trip, shortcuts modal opens via `?`.
+
+### E.1.d — App-specific happy paths
+- json-xml: type `{"a":1}` → expect `<a>1</a>` in output panel within 500ms; `Ctrl+Shift+S` swaps; `Ctrl+Shift+C` copies (assert clipboard via `navigator.clipboard.readText` exposure or `page.evaluate`).
+- qrcode: per content type, fill the form and assert the rendered SVG contains an expected fingerprint (a hash of the resulting `data` string, NOT visual diff — visual is too flaky).
+- web: navigate, assert link count matches `APPS.length`, every link has `target="_blank"`.
+
+### E.1.e — Cross-app theme cookie test
+- Set theme to `light` on json-xml's port, navigate to qrcode's port, assert `<html data-theme="light">` is set on load. Requires the dev test setup to use the same apex hostname for all three (e.g. all served on `localhost` and the test sets `Domain=localhost` via the cookie helper). Document the limitation: real cross-subdomain only works with `*.aliv.local` hosts entries (covered in Phase 0.6 docs).
+
+### E.1.f — Visual regression
+- **Out of scope for v1.** No snapshot/visual-diff tests; they're flaky and high-maintenance. We rely on assertion-based tests + manual review for visual quality. Track as deferred for a v0.2 follow-up.
+
+### E.1.g — CI integration
+- Add a top-level `pnpm e2e` script.
+- The DoD's "fresh-clone install" check now runs: `pnpm install && pnpm -r build && pnpm -r test && pnpm -r lint && pnpm e2e`.
+- E2E runs only against chromium in CI by default; firefox + webkit are opt-in via `pnpm e2e --project=firefox`.
+
+**Tests to add**
+- Target: **~25 e2e specs**, each with 1–4 assertions. Counted separately from unit tests.
+
+**Risks**
+- Playwright + Vite preview port collisions in dev. Mitigation: fixed ports, `webServer.reuseExistingServer: true`.
+- Clipboard API in webkit needs the `--enable-features=ClipboardAPI` flag. Mitigation: skip clipboard assertions on webkit, document in spec.
+- React Compiler + Playwright sometimes log noisy warnings. Mitigation: filter known warnings in a `console.warn` listener; fail only on errors.
+
+**Acceptance**
+- `pnpm e2e` green on chromium locally and in CI.
+- All 3 critical user journeys covered end-to-end: convert JSON↔XML, generate scannable QR (Wi-Fi + vCard), navigate via app switcher.
+- Cross-app theme persistence verified by automated test (no longer "assumed").
+- Manual phone-scanning smoke (Wi-Fi connects, vCard imports) is the *only* remaining manual step for Q.11.
+
+---
+
 ## Phase Q.11 — Final integration & launch checklist
 
 **Goal**: Whole-platform validation before declaring v1 done.
@@ -1014,19 +1118,21 @@ apps/qrcode/src/
 2. Verify the platform landing (`apps/web`) now lists QR as live, not coming-soon.
 3. Verify the app switcher in json-xml correctly links to the qrcode subdomain.
 4. Run full suite: `pnpm -r test` — must show ≥ 350 passing.
-5. Run `pnpm -r build`; record bundle sizes; flag any chunk > 500 KB for follow-up.
-6. Manual end-to-end smoke test on Chrome, Firefox, Safari (desktop) + iOS Safari + Android Chrome (mobile):
+5. Run `pnpm e2e` — all e2e specs green on chromium.
+6. Run `pnpm -r build`; record bundle sizes; flag any chunk > 500 KB for follow-up.
+7. Manual phone-scanning smoke test (the only manual step left after Phase E.1):
    - Generate Wi-Fi QR → scan with a phone → connects.
    - Generate vCard QR → scan → contact created.
    - Generate styled QR with logo → scan → still works.
-7. Update `CLAUDE.md` to reflect the new state (qrcode shipped, hash next).
-8. Tag release `v0.1.0`.
+8. Update `CLAUDE.md` to reflect the new state (qrcode shipped, hash next).
+9. Tag release `v0.1.0`.
 
 **Acceptance**
-- ≥ 350 passing tests across the monorepo.
+- ≥ 350 passing unit tests across the monorepo.
+- ≥ 25 e2e specs green on chromium.
 - Three working apps each on their own subdomain (or path during dev).
 - App switcher works in all three.
-- Cross-app theme persistence works (assuming subdomains).
+- Cross-app theme persistence verified by Playwright (no longer "assumed").
 
 ---
 
@@ -1078,7 +1184,8 @@ apps/qrcode/src/
 | qrcode marketing | 8 |
 | **New tests added** | **~257** |
 | **Existing (json-xml)** | **201** |
-| **Total target** | **≥ 350** *(buffer of ~100 for slippage)* |
+| **Total unit-test target** | **≥ 350** *(buffer of ~100 for slippage)* |
+| Playwright e2e specs (separate suite) | ~25 |
 
 ---
 
@@ -1088,10 +1195,11 @@ apps/qrcode/src/
 - [ ] `pnpm -r build` succeeds for all apps.
 - [ ] `pnpm -r test` ≥ 350 passing, 0 failing.
 - [ ] `pnpm -r lint` 0 errors.
+- [ ] `pnpm e2e` green on chromium (≥ 25 specs).
 - [ ] All three apps render with the AppShell, accents distinct, leaf logo color-coded.
 - [ ] App switcher works in every app, links open in new tab.
-- [ ] Cross-subdomain theme cookie verified by unit test.
-- [ ] QR generator: every content type produces a scannable QR (manual verification for at least Wi-Fi and vCard).
+- [ ] Cross-subdomain theme cookie verified by unit test **and** by Playwright.
+- [ ] QR generator: every content type produces a scannable QR (manual phone-scan for Wi-Fi + vCard).
 - [ ] Lighthouse: each app ≥ 90 on every category.
 - [ ] CLAUDE.md and ALIV_PLATFORM.md updated to reflect ship state.
 - [ ] Tagged `v0.1.0`.
@@ -1136,7 +1244,12 @@ Q.7  Scannability check
 Q.8  Settings drawer + presets
 Q.9  Keyboard / mobile / a11y
 Q.10 Marketing landing content
-Q.11 Final integration + launch checklist
+
+[Part C — End-to-end]
+E.1  Playwright e2e suite (packages/e2e, ~25 specs across 3 apps)
+
+[Launch]
+Q.11 Final integration + launch checklist (now gated on `pnpm e2e` green)
 ```
 
 Each phase is one branch and one commit (or a small handful for the larger phases). Always green between phases.
