@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type QRCodeStyling from 'qr-code-styling';
 import { AppShell } from '@aliv/ui';
 import { QrPreview } from './components/QrPreview';
 import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
@@ -7,6 +8,7 @@ import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
 import { LogoEcWarning } from './components/LogoEcWarning';
+import { ExportPanel } from './components/ExportPanel';
 import { ContentTabs } from './content/ContentTabs';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
@@ -21,6 +23,7 @@ export default function App() {
   const [contentMap, setContentMap] = useState<Record<ContentType, ContentData>>(DEFAULT_CONTENT);
   const [options, setOptions] = useState<QrOptions>(DEFAULT_QR_OPTIONS);
   const [userTouchedEc, setUserTouchedEc] = useState(false);
+  const qrRef = useRef<QRCodeStyling | null>(null);
 
   const data = contentMap[contentType];
   const built = buildContent(data);
@@ -92,8 +95,9 @@ export default function App() {
               onMargin={(margin) => update({ margin })}
             />
           </div>
+          <ExportPanel qrRef={qrRef} filenameSeed={effectiveOptions.data} />
         </div>
-        <QrPreview options={effectiveOptions} />
+        <QrPreview options={effectiveOptions} qrRef={qrRef} />
       </div>
     </AppShell>
   );
