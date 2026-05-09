@@ -16,6 +16,8 @@ import { assess } from './lib/scannability';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
+import { Hero } from './sections/Hero';
+import { Faq } from './sections/Faq';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
 import { buildContent } from './content/builders';
@@ -94,6 +96,7 @@ export default function App() {
       shortcutsList={SHORTCUTS_LIST}
       settings={<QrSettings onApplyPreset={handleApplyPreset} onReset={handleReset} />}
     >
+      <Hero />
       <div className="qr-app">
         <div className="qr-controls">
           <div className="qr-control-group">
@@ -142,6 +145,7 @@ export default function App() {
         </div>
         <QrPreview options={effectiveOptions} qrRef={qrRef} />
       </div>
+      <Faq />
     </AppShell>
   );
 }
