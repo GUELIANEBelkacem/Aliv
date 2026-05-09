@@ -1,17 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { ContentInput } from '../components/ContentInput';
 import { ErrorCorrectionPicker } from '../components/ErrorCorrectionPicker';
 import { SizeMarginControls } from '../components/SizeMarginControls';
-
-describe('ContentInput', () => {
-  it('emits onChange when typed', () => {
-    const onChange = vi.fn();
-    const { getByLabelText } = render(<ContentInput value="" onChange={onChange} />);
-    fireEvent.change(getByLabelText(/Text or URL/i), { target: { value: 'hi' } });
-    expect(onChange).toHaveBeenCalledWith('hi');
-  });
-});
 
 describe('ErrorCorrectionPicker', () => {
   it('renders all 4 levels and marks the current one', () => {

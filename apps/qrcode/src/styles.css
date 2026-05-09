@@ -126,6 +126,9 @@ body {
   color: var(--text);
 }
 
+.qr-content-tabs { flex-wrap: wrap; }
+.qr-content-form { margin-top: var(--space-3); }
+
 .qr-row {
   display: flex;
   gap: var(--space-3);
