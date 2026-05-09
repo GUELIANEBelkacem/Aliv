@@ -24,6 +24,7 @@
     "@codemirror/view": "^6.40.0",
     "@lezer/highlight": "^1.2.1",
     "codemirror": "^6.0.2",
+    "@aliv/ui": "workspace:*",
     "fast-xml-parser": "^5.5.9",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"

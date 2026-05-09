@@ -10,6 +10,9 @@ importers:
 
   apps/json-xml:
     dependencies:
+      '@aliv/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@codemirror/autocomplete':
         specifier: ^6.20.1
         version: 6.20.2
