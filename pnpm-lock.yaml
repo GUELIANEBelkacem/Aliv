@@ -108,6 +108,67 @@ importers:
         specifier: ^4.1.1
         version: 4.1.5(@types/node@24.12.3)(jsdom@25.0.1)(vite@8.0.11(@types/node@24.12.3))
 
+  apps/web:
+    dependencies:
+      '@aliv/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      react:
+        specifier: ^19.2.4
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.4
+        version: 9.39.4
+      '@testing-library/jest-dom':
+        specifier: ^6.6.3
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: ^16.1.0
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@types/node':
+        specifier: ^24.12.0
+        version: 24.12.3
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^6.0.1
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0-rc.18)(vite@8.0.11(@types/node@24.12.3)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.11(@types/node@24.12.3))
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.4
+      eslint-plugin-react-hooks:
+        specifier: ^7.0.1
+        version: 7.1.1(eslint@9.39.4)
+      eslint-plugin-react-refresh:
+        specifier: ^0.5.2
+        version: 0.5.2(eslint@9.39.4)
+      globals:
+        specifier: ^17.4.0
+        version: 17.6.0
+      jsdom:
+        specifier: ^25.0.1
+        version: 25.0.1
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.57.0
+        version: 8.59.2(eslint@9.39.4)(typescript@5.9.3)
+      vite:
+        specifier: ^8.0.1
+        version: 8.0.11(@types/node@24.12.3)
+      vitest:
+        specifier: ^4.1.1
+        version: 4.1.5(@types/node@24.12.3)(jsdom@25.0.1)(vite@8.0.11(@types/node@24.12.3))
+
   packages/ui:
     devDependencies:
       '@testing-library/jest-dom':

@@ -1,0 +1,133 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.web-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.web-hero {
+  text-align: center;
+  padding: var(--space-8) var(--space-2);
+}
+.web-hero-logo {
+  display: inline-flex;
+  margin-bottom: var(--space-5);
+}
+.web-hero-headline {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+  color: var(--text);
+}
+.web-hero-sub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 560px;
+  margin: 0 auto var(--space-6);
+}
+.web-hero-cta {
+  display: inline-block;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  transition: color var(--transition);
+}
+.web-hero-cta:hover { color: var(--accent-hover); }
+
+.web-section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin: var(--space-8) 0 var(--space-6);
+  color: var(--text);
+}
+
+.web-app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+.web-app-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  position: relative;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+}
+.web-app-card:hover { transform: translateY(-2px); border-color: currentColor; background: var(--surface-elevated); }
+.web-app-card.is-coming-soon { opacity: 0.55; cursor: not-allowed; }
+.web-app-card-leaf { color: currentColor; }
+.web-app-card-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.web-app-card-tagline {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.web-app-card-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  font-size: 0.7rem;
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.web-manifesto {
+  margin-top: var(--space-8);
+}
+.web-manifesto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6);
+}
+.web-manifesto-grid h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-2);
+}
+.web-manifesto-grid p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.web-footer {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.web-footer a { color: inherit; text-decoration: underline; text-decoration-color: var(--border); }
+.web-footer a:hover { color: var(--text); }
+.web-footer-divider { color: var(--text-faint); }
