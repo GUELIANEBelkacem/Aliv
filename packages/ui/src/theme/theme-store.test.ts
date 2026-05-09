@@ -20,10 +20,17 @@ describe('theme store', () => {
     expect(document.documentElement.dataset.theme).toBe('light');
   });
 
-  it('writes a cookie with SameSite=Lax', () => {
+  it('writes a cookie value that round-trips via getTheme', () => {
+    // localStorage is the dev-fallback; in production the apex-domain cookie
+    // is the source. We assert the round-trip works regardless of which path
+    // jsdom honors.
     setTheme('light');
-    // Cookie write may fail in jsdom for some Domain= configs; localStorage path is the fallback.
-    // We just assert the value persists somewhere readable.
+    expect(getTheme()).toBe('light');
+  });
+
+  it('cookie reader picks up an apex-scoped cookie even when localStorage is empty', () => {
+    document.cookie = 'aliv-theme=light; Path=/';
+    localStorage.clear();
     expect(getTheme()).toBe('light');
   });
 
