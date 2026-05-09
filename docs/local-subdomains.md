@@ -5,10 +5,30 @@ In production, every Aliv app lives on its own subdomain of `aliv.<tld>`
 scoped to the apex domain so a theme change in one app persists across
 every other Aliv app the user opens.
 
-In dev this needs hostname mapping. Each app's Vite dev server runs on a
-different port (json-xml `5173`, qrcode `5174`, web `5175` by
-convention), and pointing them all at `*.aliv.local` lets the
-apex-scoped cookie match every subdomain just like in production.
+## The simple path: `localhost` with fixed ports
+
+`appUrl()` detects when the current page is on `localhost` /
+`127.0.0.1` and routes the AppSwitcher tiles to fixed dev ports
+instead of the production `https://<sub>.aliv.<tld>` URLs. Each app's
+Vite dev server is pinned via `server.port` + `strictPort`:
+
+| App | Dev port | Preview port |
+|---|---|---|
+| json-xml | 5173 | 4001 |
+| qrcode   | 5174 | 4002 |
+| web      | 5175 | 4003 |
+| hashgen  | 5176 (when added) | — |
+
+`pnpm dev` (from the repo root) starts all three apps in parallel.
+Click the leaf app-switcher in any of them and the tile opens the
+matching localhost port — no hosts file needed.
+
+## When you DO want the apex cookie path (cross-app theme sync)
+
+The localhost path is convenient but uses a different origin per app,
+so cookies are scoped per-port and the apex-domain theme cookie can't
+follow you. To exercise the production path locally, set up the
+hostnames below.
 
 ## Setup
 
