@@ -1,3 +1,5 @@
+import { Banner } from '@aliv/ui';
+
 interface LogoEcWarningProps {
   show: boolean;
 }
@@ -5,9 +7,11 @@ interface LogoEcWarningProps {
 export function LogoEcWarning({ show }: LogoEcWarningProps) {
   if (!show) return null;
   return (
-    <div className="qr-banner" data-testid="logo-ec-warning">
-      Logo is large — error correction was bumped to <strong>H</strong> to keep
-      the QR scannable. You can change it back manually if you prefer.
+    <div data-testid="logo-ec-warning">
+      <Banner severity="warn" title="Error correction bumped to H">
+        Your logo is large enough that we raised error correction to H so the
+        QR stays scannable. Override below if you'd rather keep the lower level.
+      </Banner>
     </div>
   );
 }

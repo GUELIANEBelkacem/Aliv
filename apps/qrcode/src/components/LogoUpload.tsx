@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { ImagePlus } from 'lucide-react';
 import { loadLogoFile } from '../lib/logo-utils';
 
 interface LogoUploadProps {
@@ -42,7 +43,11 @@ export function LogoUpload({ src, onChange }: LogoUploadProps) {
         {src ? (
           <img src={src} alt="Logo preview" className="qr-logo-preview" />
         ) : (
-          <span>Drop or click to upload (PNG, SVG, JPEG, WebP — max 2 MB)</span>
+          <>
+            <ImagePlus aria-hidden="true" />
+            <span>Drop or click to upload</span>
+            <span className="qr-field-hint">PNG · SVG · JPEG · WebP — max 2 MB</span>
+          </>
         )}
       </div>
       {src && (

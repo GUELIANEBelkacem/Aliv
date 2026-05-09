@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import type QRCodeStyling from 'qr-code-styling';
+import { Sparkles, Palette, Shapes, ImagePlus, Sliders, Download } from 'lucide-react';
 import { AppShell, type Shortcut } from '@aliv/ui';
 import { copyPngToClipboard } from './lib/export';
 import { CONTENT_TYPE_ORDER } from './content/order';
@@ -30,6 +31,38 @@ const SHORTCUTS_LIST = [
   { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
   { keys: 'Ctrl+Shift+S', description: 'Next content type' },
 ];
+
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  text: 'Plain text',
+  url: 'Web address',
+  wifi: 'Wi-Fi network',
+  vcard: 'Contact card',
+  email: 'mailto link',
+  sms: 'SMS message',
+  phone: 'Phone number',
+  geo: 'Map coordinates',
+  calendar: 'Calendar event',
+};
+
+interface SectionProps {
+  icon: ComponentType<{ 'aria-hidden'?: boolean }>;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}
+
+function Section({ icon: Icon, title, hint, children }: SectionProps) {
+  return (
+    <section className="qr-control-group">
+      <header className="qr-group-header">
+        <Icon aria-hidden />
+        <h3>{title}</h3>
+        {hint && <span className="qr-group-hint">{hint}</span>}
+      </header>
+      {children}
+    </section>
+  );
+}
 
 export default function App() {
   const [contentType, setContentType] = useState<ContentType>('url');
@@ -99,8 +132,7 @@ export default function App() {
       <Hero />
       <div className="qr-app">
         <div className="qr-controls">
-          <div className="qr-control-group">
-            <h3>Content</h3>
+          <Section icon={Sparkles} title="Content" hint={CONTENT_TYPE_LABELS[contentType]}>
             <ContentTabs value={contentType} onChange={setContentType} />
             <div className="qr-content-form">
               <ContentEditor data={data} onChange={updateData} />
@@ -108,28 +140,38 @@ export default function App() {
             {!built.ok && built.error && (
               <span className="qr-field-hint" style={{ color: 'var(--danger)' }}>{built.error}</span>
             )}
-          </div>
-          <ColorControls
-            foreground={options.foreground}
-            background={options.background}
-            eyeColor={options.eyeColor}
-            onForegroundChange={(foreground) => update({ foreground })}
-            onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
-            onEyeColorChange={(eyeColor) => update({ eyeColor })}
-          />
-          <ShapeControls
-            moduleShape={options.moduleShape}
-            eyeFrameShape={options.eyeFrameShape}
-            eyeBallShape={options.eyeBallShape}
-            onModuleShape={(moduleShape) => update({ moduleShape })}
-            onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
-            onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
-          />
-          <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
+          </Section>
+
+          <Section icon={Palette} title="Colors">
+            <ColorControls
+              foreground={options.foreground}
+              background={options.background}
+              eyeColor={options.eyeColor}
+              onForegroundChange={(foreground) => update({ foreground })}
+              onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
+              onEyeColorChange={(eyeColor) => update({ eyeColor })}
+            />
+          </Section>
+
+          <Section icon={Shapes} title="Shapes">
+            <ShapeControls
+              moduleShape={options.moduleShape}
+              eyeFrameShape={options.eyeFrameShape}
+              eyeBallShape={options.eyeBallShape}
+              onModuleShape={(moduleShape) => update({ moduleShape })}
+              onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
+              onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
+            />
+          </Section>
+
+          <Section icon={ImagePlus} title="Logo" hint={options.logo ? 'Embedded' : 'Optional'}>
+            <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
+          </Section>
+
           <LogoEcWarning show={autoBump} />
           <ScannabilityNotice result={scannability} />
-          <div className="qr-control-group">
-            <h3>Format</h3>
+
+          <Section icon={Sliders} title="Format">
             <ErrorCorrectionPicker
               value={effectiveOptions.errorCorrection}
               onChange={handleEcChange}
@@ -140,10 +182,13 @@ export default function App() {
               onSize={(size) => update({ size })}
               onMargin={(margin) => update({ margin })}
             />
-          </div>
-          <ExportPanel qrRef={qrRef} filenameSeed={effectiveOptions.data} />
+          </Section>
+
+          <Section icon={Download} title="Export">
+            <ExportPanel qrRef={qrRef} filenameSeed={effectiveOptions.data} />
+          </Section>
         </div>
-        <QrPreview options={effectiveOptions} qrRef={qrRef} />
+        <QrPreview options={effectiveOptions} qrRef={qrRef} scannability={scannability} />
       </div>
       <Faq />
     </AppShell>

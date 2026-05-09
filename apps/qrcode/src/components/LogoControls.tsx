@@ -1,3 +1,4 @@
+import { Slider, SegmentedControl } from '@aliv/ui';
 import { LogoUpload } from './LogoUpload';
 import type { LogoConfig } from '../lib/types';
 
@@ -7,10 +8,10 @@ interface LogoControlsProps {
 }
 
 const SHAPES = [
-  { value: 'square', label: 'Square' },
-  { value: 'rounded', label: 'Rounded' },
-  { value: 'circle', label: 'Circle' },
-] as const;
+  { value: 'square' as const, label: 'Square' },
+  { value: 'rounded' as const, label: 'Rounded' },
+  { value: 'circle' as const, label: 'Circle' },
+];
 
 export function LogoControls({ logo, onChange }: LogoControlsProps) {
   function setSrc(src: string | undefined) {
@@ -27,53 +28,40 @@ export function LogoControls({ logo, onChange }: LogoControlsProps) {
   }
 
   return (
-    <div className="qr-control-group">
-      <h3>Logo</h3>
+    <>
       <LogoUpload src={logo?.src} onChange={setSrc} />
       {logo && (
         <>
-          <div className="qr-field">
-            <label htmlFor="qr-logo-size">Size: {Math.round(logo.sizeRatio * 100)}%</label>
-            <input
-              id="qr-logo-size"
-              type="range"
-              min={0.1}
-              max={0.45}
-              step={0.01}
-              value={logo.sizeRatio}
-              onChange={(e) => onChange({ ...logo, sizeRatio: Number(e.target.value) })}
-            />
-          </div>
-          <div className="qr-field">
-            <label htmlFor="qr-logo-padding">Padding: {logo.padding}px</label>
-            <input
-              id="qr-logo-padding"
-              type="range"
-              min={0}
-              max={20}
-              step={1}
-              value={logo.padding}
-              onChange={(e) => onChange({ ...logo, padding: Number(e.target.value) })}
-            />
-          </div>
+          <Slider
+            label="Size"
+            value={logo.sizeRatio}
+            min={0.1}
+            max={0.45}
+            step={0.01}
+            onChange={(v) => onChange({ ...logo, sizeRatio: v })}
+            format={(v) => `${Math.round(v * 100)}%`}
+          />
+          <Slider
+            label="Padding"
+            value={logo.padding}
+            min={0}
+            max={20}
+            step={1}
+            onChange={(v) => onChange({ ...logo, padding: v })}
+            format={(v) => `${v} px`}
+          />
           <div className="qr-field">
             <label>Shape</label>
-            <div className="qr-segmented" role="radiogroup">
-              {SHAPES.map((s) => (
-                <button
-                  key={s.value}
-                  role="radio"
-                  aria-checked={logo.shape === s.value}
-                  className={logo.shape === s.value ? 'is-active' : ''}
-                  onClick={() => onChange({ ...logo, shape: s.value })}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              value={logo.shape}
+              options={SHAPES}
+              onChange={(shape) => onChange({ ...logo, shape })}
+              ariaLabel="Logo shape"
+              full
+            />
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }

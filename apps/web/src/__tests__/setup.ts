@@ -5,3 +5,10 @@ import { cleanup } from '@testing-library/react';
 afterEach(() => {
   cleanup();
 });
+
+class MockResizeObserver {
+  observe() { /* noop */ }
+  unobserve() { /* noop */ }
+  disconnect() { /* noop */ }
+}
+(globalThis as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;

@@ -14,8 +14,8 @@ describe('ShapeControls', () => {
         onEyeBallShape={() => {}}
       />,
     );
-    const dots = container.querySelector('[aria-label="Modules"] [data-shape="dots"]')!;
-    expect(dots.className).toContain('is-active');
+    const dotsBtn = container.querySelector('[aria-label="Modules"] [data-segment-value="dots"]')!;
+    expect(dotsBtn.getAttribute('data-active')).toBe('true');
   });
 
   it('emits module shape changes', () => {
@@ -30,7 +30,7 @@ describe('ShapeControls', () => {
         onEyeBallShape={() => {}}
       />,
     );
-    const rounded = container.querySelector('[aria-label="Modules"] [data-shape="rounded"]')!;
+    const rounded = container.querySelector('[aria-label="Modules"] [data-segment-value="rounded"]')!;
     fireEvent.click(rounded);
     expect(onModuleShape).toHaveBeenCalledWith('rounded');
   });
@@ -48,8 +48,8 @@ describe('ShapeControls', () => {
         onEyeBallShape={onEyeBall}
       />,
     );
-    fireEvent.click(container.querySelector('[aria-label="Eye frame"] [data-shape="leaf"]')!);
-    fireEvent.click(container.querySelector('[aria-label="Eye ball"] [data-shape="circle"]')!);
+    fireEvent.click(container.querySelector('[aria-label="Eye frame"] [data-segment-value="leaf"]')!);
+    fireEvent.click(container.querySelector('[aria-label="Eye ball"] [data-segment-value="circle"]')!);
     expect(onEyeFrame).toHaveBeenCalledWith('leaf');
     expect(onEyeBall).toHaveBeenCalledWith('circle');
   });

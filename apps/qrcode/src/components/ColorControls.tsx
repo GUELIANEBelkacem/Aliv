@@ -20,8 +20,7 @@ export function ColorControls({
   onEyeColorChange,
 }: ColorControlsProps) {
   return (
-    <div className="qr-control-group">
-      <h3>Colors</h3>
+    <>
       <GradientEditor value={foreground} onChange={onForegroundChange} />
       <ColorPicker
         id="qr-bg"
@@ -30,14 +29,14 @@ export function ColorControls({
         onChange={onBackgroundChange}
       />
       <div className="qr-field">
-        <label>
+        <label className="qr-checkbox-label">
           <input
             type="checkbox"
             checked={eyeColor !== undefined}
             onChange={(e) =>
               onEyeColorChange(e.target.checked ? (foreground.type === 'solid' ? foreground.color : foreground.stops[0]) : undefined)
             }
-          />{' '}
+          />
           Override eye color
         </label>
         <span className="qr-field-hint">Color the three corner markers separately from the body.</span>
@@ -50,6 +49,6 @@ export function ColorControls({
           onChange={onEyeColorChange}
         />
       )}
-    </div>
+    </>
   );
 }

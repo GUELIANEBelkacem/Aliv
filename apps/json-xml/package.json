@@ -26,6 +26,7 @@
     "codemirror": "^6.0.2",
     "@aliv/ui": "workspace:*",
     "fast-xml-parser": "^5.5.9",
+    "lucide-react": "^0.469.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

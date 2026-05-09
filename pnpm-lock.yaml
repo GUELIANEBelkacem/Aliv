@@ -49,6 +49,9 @@ importers:
       fast-xml-parser:
         specifier: ^5.5.9
         version: 5.7.3
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.6)
       react:
         specifier: ^19.2.4
         version: 19.2.6
@@ -113,6 +116,9 @@ importers:
       '@aliv/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.6)
       qr-code-styling:
         specifier: ^1.9.2
         version: 1.9.2
@@ -177,6 +183,9 @@ importers:
       '@aliv/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.6)
       react:
         specifier: ^19.2.4
         version: 19.2.6

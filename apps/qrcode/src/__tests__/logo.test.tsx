@@ -71,19 +71,19 @@ describe('LogoControls', () => {
 
   it('does not render size/padding/shape when no logo set', () => {
     const { queryByLabelText } = render(<LogoControls logo={undefined} onChange={() => {}} />);
-    expect(queryByLabelText(/Size:/i)).toBeNull();
+    expect(queryByLabelText('Size')).toBeNull();
   });
 
   it('shows controls when a logo is set', () => {
     const { getByLabelText } = render(<LogoControls logo={logo} onChange={() => {}} />);
-    expect(getByLabelText(/Size:/i)).toBeInTheDocument();
-    expect(getByLabelText(/Padding:/i)).toBeInTheDocument();
+    expect(getByLabelText('Size')).toBeInTheDocument();
+    expect(getByLabelText('Padding')).toBeInTheDocument();
   });
 
   it('emits sizeRatio change', () => {
     const onChange = vi.fn();
     const { getByLabelText } = render(<LogoControls logo={logo} onChange={onChange} />);
-    fireEvent.change(getByLabelText(/Size:/i), { target: { value: '0.3' } });
+    fireEvent.change(getByLabelText('Size'), { target: { value: '0.3' } });
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ sizeRatio: 0.3 }));
   });
 });

@@ -5,6 +5,10 @@ export { Button, type ButtonVariant } from './components/Button';
 export { IconButton } from './components/IconButton';
 export { Drawer } from './components/Drawer';
 export { ShortcutsModal, formatKeys } from './components/ShortcutsModal';
+export { Slider } from './components/Slider';
+export { SegmentedControl, type SegmentOption } from './components/SegmentedControl';
+export { Banner, type BannerSeverity } from './components/Banner';
+export { Surface } from './components/Surface';
 
 export { ThemeToggle } from './theme/ThemeToggle';
 export { useTheme } from './theme/useTheme';

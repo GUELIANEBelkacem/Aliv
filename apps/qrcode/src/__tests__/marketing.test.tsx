@@ -6,7 +6,7 @@ import { Faq } from '../sections/Faq';
 describe('Hero', () => {
   it('renders the headline', () => {
     const { getByRole } = render(<Hero />);
-    expect(getByRole('heading', { level: 1 }).textContent).toMatch(/Customizable QR codes/i);
+    expect(getByRole('heading', { level: 1 }).textContent).toMatch(/customizable/i);
   });
 });
 

@@ -5,15 +5,17 @@ import { SizeMarginControls } from '../components/SizeMarginControls';
 
 describe('ErrorCorrectionPicker', () => {
   it('renders all 4 levels and marks the current one', () => {
-    const { getByText } = render(<ErrorCorrectionPicker value="M" onChange={() => {}} />);
-    expect(getByText('M').className).toContain('is-active');
-    expect(getByText('L').className).not.toContain('is-active');
+    const { container } = render(<ErrorCorrectionPicker value="M" onChange={() => {}} />);
+    const m = container.querySelector('[data-segment-value="M"]')!;
+    const l = container.querySelector('[data-segment-value="L"]')!;
+    expect(m.getAttribute('data-active')).toBe('true');
+    expect(l.getAttribute('data-active')).toBe('false');
   });
 
   it('emits onChange when a different level is clicked', () => {
     const onChange = vi.fn();
-    const { getByText } = render(<ErrorCorrectionPicker value="M" onChange={onChange} />);
-    fireEvent.click(getByText('H'));
+    const { container } = render(<ErrorCorrectionPicker value="M" onChange={onChange} />);
+    fireEvent.click(container.querySelector('[data-segment-value="H"]')!);
     expect(onChange).toHaveBeenCalledWith('H');
   });
 });
@@ -24,7 +26,7 @@ describe('SizeMarginControls', () => {
     const { getByLabelText } = render(
       <SizeMarginControls size={280} margin={12} onSize={onSize} onMargin={() => {}} />,
     );
-    fireEvent.change(getByLabelText(/Size:/i), { target: { value: '320' } });
+    fireEvent.change(getByLabelText('Size'), { target: { value: '320' } });
     expect(onSize).toHaveBeenCalledWith(320);
   });
 
@@ -33,7 +35,7 @@ describe('SizeMarginControls', () => {
     const { getByLabelText } = render(
       <SizeMarginControls size={280} margin={12} onSize={() => {}} onMargin={onMargin} />,
     );
-    fireEvent.change(getByLabelText(/Quiet zone:/i), { target: { value: '20' } });
+    fireEvent.change(getByLabelText('Quiet zone'), { target: { value: '20' } });
     expect(onMargin).toHaveBeenCalledWith(20);
   });
 });
