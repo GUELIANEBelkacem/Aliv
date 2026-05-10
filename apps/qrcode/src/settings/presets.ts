@@ -16,6 +16,7 @@ const base = (overrides: Partial<QrOptions>): Preset['options'] => ({
   moduleShape: 'square',
   eyeFrameShape: 'square',
   eyeBallShape: 'square',
+  frameShape: 'rounded',
   ...overrides,
 });
 

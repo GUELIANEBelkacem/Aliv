@@ -15,6 +15,8 @@ export type ModuleShape =
 
 export type EyeShape = 'square' | 'rounded' | 'leaf' | 'circle';
 
+export type FrameShape = 'square' | 'rounded' | 'circle';
+
 export interface LogoConfig {
   src: string;
   sizeRatio: number;
@@ -34,6 +36,7 @@ export interface QrOptions {
   moduleShape: ModuleShape;
   eyeFrameShape: EyeShape;
   eyeBallShape: EyeShape;
+  frameShape: FrameShape;
   logo?: LogoConfig;
 }
 
@@ -47,4 +50,5 @@ export const DEFAULT_QR_OPTIONS: QrOptions = {
   moduleShape: 'square',
   eyeFrameShape: 'square',
   eyeBallShape: 'square',
+  frameShape: 'rounded',
 };

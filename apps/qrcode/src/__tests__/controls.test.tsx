@@ -21,20 +21,9 @@ describe('ErrorCorrectionPicker', () => {
 });
 
 describe('SizeMarginControls', () => {
-  it('size slider emits Number on change', () => {
-    const onSize = vi.fn();
-    const { getByLabelText } = render(
-      <SizeMarginControls size={280} margin={12} onSize={onSize} onMargin={() => {}} />,
-    );
-    fireEvent.change(getByLabelText('Size'), { target: { value: '320' } });
-    expect(onSize).toHaveBeenCalledWith(320);
-  });
-
-  it('margin slider emits Number on change', () => {
+  it('quiet-zone slider emits Number on change', () => {
     const onMargin = vi.fn();
-    const { getByLabelText } = render(
-      <SizeMarginControls size={280} margin={12} onSize={() => {}} onMargin={onMargin} />,
-    );
+    const { getByLabelText } = render(<SizeMarginControls margin={12} onMargin={onMargin} />);
     fireEvent.change(getByLabelText('Quiet zone'), { target: { value: '20' } });
     expect(onMargin).toHaveBeenCalledWith(20);
   });

@@ -24,7 +24,7 @@ export function ErrorCorrectionPicker({ value, onChange }: Props) {
         ariaLabel="Error correction level"
         full
       />
-      <span className="qr-field-hint">Higher = more resilient to damage, but denser code.</span>
+      <span className="qr-field-hint">L=7%, M=15%, Q=25%, H=30% recoverable damage. Higher = denser code, more tolerant of logos and worn prints.</span>
     </div>
   );
 }

@@ -40,7 +40,7 @@ describe('GradientEditor', () => {
         onChange={onChange}
       />,
     );
-    expect(getByLabelText(/Angle: 45/i)).toBeInTheDocument();
+    expect(getByLabelText('Angle')).toBeInTheDocument();
   });
 
   it('switching from solid to linear keeps the previous color as stop 1', () => {

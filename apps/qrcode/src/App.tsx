@@ -199,9 +199,11 @@ export default function App() {
                 moduleShape={options.moduleShape}
                 eyeFrameShape={options.eyeFrameShape}
                 eyeBallShape={options.eyeBallShape}
+                frameShape={options.frameShape}
                 onModuleShape={(moduleShape) => update({ moduleShape })}
                 onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
                 onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
+                onFrameShape={(frameShape) => update({ frameShape })}
               />
             </Panel>
           )}
@@ -219,9 +221,7 @@ export default function App() {
                 onChange={handleEcChange}
               />
               <SizeMarginControls
-                size={options.size}
                 margin={options.margin}
-                onSize={(size) => update({ size })}
                 onMargin={(margin) => update({ margin })}
               />
             </Panel>

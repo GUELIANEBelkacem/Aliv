@@ -1,4 +1,6 @@
+import { SegmentedControl } from '@aliv/ui';
 import { ColorPicker } from './ColorPicker';
+import { Slider } from '@aliv/ui';
 import type { ColorFill } from '../lib/types';
 
 interface GradientEditorProps {
@@ -12,15 +14,23 @@ const TYPES = [
   { value: 'radial-gradient', label: 'Radial' },
 ] as const;
 
+type FillType = ColorFill['type'];
+
 export function GradientEditor({ value, onChange }: GradientEditorProps) {
-  function setType(type: ColorFill['type']) {
+  function setType(type: FillType) {
     if (type === 'solid') {
-      onChange({ type: 'solid', color: value.type === 'solid' ? value.color : value.stops[0] });
+      const color = value.type === 'solid' ? value.color : value.stops[0];
+      onChange({ type: 'solid', color });
     } else if (type === 'linear-gradient') {
-      const stops = value.type === 'solid' ? [value.color, '#999999'] as [string, string] : value.stops;
-      onChange({ type: 'linear-gradient', stops, angle: value.type === 'linear-gradient' ? value.angle : 0 });
+      const stops: [string, string] = value.type === 'solid'
+        ? [value.color, '#999999']
+        : value.stops;
+      const angle = value.type === 'linear-gradient' ? value.angle : 0;
+      onChange({ type: 'linear-gradient', stops, angle });
     } else {
-      const stops = value.type === 'solid' ? [value.color, '#999999'] as [string, string] : value.stops;
+      const stops: [string, string] = value.type === 'solid'
+        ? [value.color, '#999999']
+        : value.stops;
       onChange({ type: 'radial-gradient', stops });
     }
   }
@@ -29,19 +39,13 @@ export function GradientEditor({ value, onChange }: GradientEditorProps) {
     <>
       <div className="qr-field">
         <label>Fill type</label>
-        <div className="qr-segmented" role="radiogroup">
-          {TYPES.map((t) => (
-            <button
-              key={t.value}
-              role="radio"
-              aria-checked={value.type === t.value}
-              className={value.type === t.value ? 'is-active' : ''}
-              onClick={() => setType(t.value)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl<FillType>
+          value={value.type}
+          options={TYPES.map((t) => ({ value: t.value, label: t.label }))}
+          onChange={setType}
+          ariaLabel="Fill type"
+          full
+        />
       </div>
 
       {value.type === 'solid' && (
@@ -68,18 +72,15 @@ export function GradientEditor({ value, onChange }: GradientEditorProps) {
             onChange={(c) => onChange({ ...value, stops: [value.stops[0], c] })}
           />
           {value.type === 'linear-gradient' && (
-            <div className="qr-field">
-              <label htmlFor="qr-grad-angle">Angle: {value.angle}°</label>
-              <input
-                id="qr-grad-angle"
-                type="range"
-                min={0}
-                max={360}
-                step={5}
-                value={value.angle}
-                onChange={(e) => onChange({ ...value, angle: Number(e.target.value) })}
-              />
-            </div>
+            <Slider
+              label="Angle"
+              value={value.angle}
+              min={0}
+              max={360}
+              step={5}
+              onChange={(angle) => onChange({ ...value, angle })}
+              format={(v) => `${v}°`}
+            />
           )}
         </>
       )}
