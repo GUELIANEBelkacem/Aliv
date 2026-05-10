@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Button } from '@aliv/ui';
+import { Button, SegmentedControl } from '@aliv/ui';
 import type QRCodeStyling from 'qr-code-styling';
 import { downloadPng, downloadSvg, copyPngToClipboard, defaultFilename } from '../lib/export';
 
-const RESOLUTIONS = [256, 512, 1024, 2048] as const;
+const RESOLUTIONS = ['256', '512', '1024', '2048'] as const;
+type Resolution = typeof RESOLUTIONS[number];
 
 interface ExportPanelProps {
   qrRef: React.MutableRefObject<QRCodeStyling | null>;
@@ -11,7 +12,7 @@ interface ExportPanelProps {
 }
 
 export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
-  const [resolution, setResolution] = useState<number>(1024);
+  const [resolution, setResolution] = useState<Resolution>('1024');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +36,8 @@ export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
   async function handlePng() {
     setError(null);
     if (!qrRef.current) return;
-    qrRef.current.update({ width: resolution, height: resolution });
+    const px = Number(resolution);
+    qrRef.current.update({ width: px, height: px });
     await withQr((qr) => downloadPng(qr, getFilename()));
   }
 
@@ -56,23 +58,16 @@ export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
   }
 
   return (
-    <div className="qr-control-group">
-      <h3>Export</h3>
+    <>
       <div className="qr-field">
-        <label>Resolution: {resolution}px</label>
-        <div className="qr-segmented">
-          {RESOLUTIONS.map((r) => (
-            <button
-              key={r}
-              role="radio"
-              aria-checked={resolution === r}
-              className={resolution === r ? 'is-active' : ''}
-              onClick={() => setResolution(r)}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
+        <label>Resolution</label>
+        <SegmentedControl<Resolution>
+          value={resolution}
+          options={RESOLUTIONS.map((r) => ({ value: r, label: `${r}px` }))}
+          onChange={setResolution}
+          ariaLabel="Resolution"
+          full
+        />
       </div>
       <div className="qr-actions">
         <Button variant="primary" onClick={handlePng}>Download PNG</Button>
@@ -80,6 +75,6 @@ export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
         <Button variant="ghost" onClick={handleCopy}>{copied ? '✓ Copied' : 'Copy PNG'}</Button>
       </div>
       {error && <span className="qr-field-hint" style={{ color: 'var(--danger)' }}>{error}</span>}
-    </div>
+    </>
   );
 }

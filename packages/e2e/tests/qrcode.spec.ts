@@ -8,14 +8,23 @@ test.describe('qrcode generator', () => {
     await expect(preview.locator('canvas, svg')).toHaveCount(1, { timeout: 5_000 });
   });
 
+  test('rail switches to Colors and back to Content', async ({ page }) => {
+    await page.goto(APP_URLS.qrcode);
+    await page.locator('[data-rail-id="colors"]').click();
+    await expect(page.locator('[data-rail-id="colors"]')).toHaveClass(/is-active/);
+    await page.locator('[data-rail-id="content"]').click();
+    await expect(page.locator('[data-rail-id="content"]')).toHaveClass(/is-active/);
+  });
+
   test('switching content type to Wi-Fi swaps the form', async ({ page }) => {
     await page.goto(APP_URLS.qrcode);
     await page.locator('[data-content-type="wifi"]').click();
     await expect(page.getByLabel('SSID')).toBeVisible();
   });
 
-  test('changing background color updates the swatch input', async ({ page }) => {
+  test('Colors section reveals the Background input', async ({ page }) => {
     await page.goto(APP_URLS.qrcode);
+    await page.locator('[data-rail-id="colors"]').click();
     const bg = page.getByLabel('Background', { exact: true });
     await bg.fill('#ff0000');
     await expect(bg).toHaveValue('#ff0000');
@@ -25,7 +34,6 @@ test.describe('qrcode generator', () => {
     await page.goto(APP_URLS.qrcode);
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.locator('[data-preset-id="cyan-brand"]').click();
-    // Drawer can be left open; the click should have applied the preset state.
     await expect(page.locator('[data-preset-id="cyan-brand"]')).toHaveClass(/is-current|qr-preset/);
   });
 });

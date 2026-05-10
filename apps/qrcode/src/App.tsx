@@ -13,6 +13,7 @@ import { LogoControls } from './components/LogoControls';
 import { LogoEcWarning } from './components/LogoEcWarning';
 import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
+import { SectionRail, type RailItem } from './components/SectionRail';
 import { assess } from './lib/scannability';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
@@ -30,7 +31,10 @@ const LARGE_LOGO_THRESHOLD = 0.2;
 const SHORTCUTS_LIST = [
   { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
   { keys: 'Ctrl+Shift+S', description: 'Next content type' },
+  { keys: 'Ctrl+1..6', description: 'Switch tool section' },
 ];
+
+type SectionId = 'content' | 'colors' | 'shapes' | 'logo' | 'format' | 'export';
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   text: 'Plain text',
@@ -44,22 +48,22 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   calendar: 'Calendar event',
 };
 
-interface SectionProps {
+interface PanelProps {
   icon: ComponentType<{ 'aria-hidden'?: boolean }>;
   title: string;
   hint?: string;
   children: ReactNode;
 }
 
-function Section({ icon: Icon, title, hint, children }: SectionProps) {
+function Panel({ icon: Icon, title, hint, children }: PanelProps) {
   return (
-    <section className="qr-control-group">
+    <section className="qr-panel">
       <header className="qr-group-header">
         <Icon aria-hidden />
         <h3>{title}</h3>
         {hint && <span className="qr-group-hint">{hint}</span>}
       </header>
-      {children}
+      <div className="qr-panel-body">{children}</div>
     </section>
   );
 }
@@ -69,6 +73,7 @@ export default function App() {
   const [contentMap, setContentMap] = useState<Record<ContentType, ContentData>>(DEFAULT_CONTENT);
   const [options, setOptions] = useState<QrOptions>(DEFAULT_QR_OPTIONS);
   const [userTouchedEc, setUserTouchedEc] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>('content');
   const qrRef = useRef<QRCodeStyling | null>(null);
 
   const data = contentMap[contentType];
@@ -117,9 +122,31 @@ export default function App() {
     if (qrRef.current) await copyPngToClipboard(qrRef.current);
   }, []);
 
+  const railItems: RailItem<SectionId>[] = [
+    { id: 'content', label: 'Content', icon: Sparkles },
+    { id: 'colors',  label: 'Colors',  icon: Palette },
+    { id: 'shapes',  label: 'Shapes',  icon: Shapes },
+    { id: 'logo',    label: 'Logo',    icon: ImagePlus, badge: autoBump ? 'warn' : undefined },
+    {
+      id: 'format',
+      label: 'Format',
+      icon: Sliders,
+      badge: scannability.level === 'fail' ? 'fail' : scannability.level === 'warn' ? 'warn' : undefined,
+    },
+    { id: 'export',  label: 'Export',  icon: Download },
+  ];
+
+  const numericShortcuts: Shortcut[] = railItems.map((item, idx) => ({
+    keys: `Ctrl+${idx + 1}`,
+    handler: () => setActiveSection(item.id),
+    whenInInput: true,
+    description: `Switch to ${item.label}`,
+  }));
+
   const shortcuts: Shortcut[] = [
     { keys: 'Ctrl+Shift+C', handler: copyPng, whenInInput: true, description: 'Copy PNG' },
     { keys: 'Ctrl+Shift+S', handler: cycleContent, whenInInput: true, description: 'Next content type' },
+    ...numericShortcuts,
   ];
 
   return (
@@ -131,63 +158,82 @@ export default function App() {
     >
       <Hero />
       <div className="qr-app">
-        <div className="qr-controls">
-          <Section icon={Sparkles} title="Content" hint={CONTENT_TYPE_LABELS[contentType]}>
-            <ContentTabs value={contentType} onChange={setContentType} />
-            <div className="qr-content-form">
-              <ContentEditor data={data} onChange={updateData} />
+        <SectionRail items={railItems} active={activeSection} onChange={setActiveSection} />
+
+        <div className="qr-panel-stage">
+          {(autoBump || scannability.level !== 'ok') && (
+            <div className="qr-notices">
+              <LogoEcWarning show={autoBump} />
+              <ScannabilityNotice result={scannability} />
             </div>
-            {!built.ok && built.error && (
-              <span className="qr-field-hint" style={{ color: 'var(--danger)' }}>{built.error}</span>
-            )}
-          </Section>
+          )}
 
-          <Section icon={Palette} title="Colors">
-            <ColorControls
-              foreground={options.foreground}
-              background={options.background}
-              eyeColor={options.eyeColor}
-              onForegroundChange={(foreground) => update({ foreground })}
-              onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
-              onEyeColorChange={(eyeColor) => update({ eyeColor })}
-            />
-          </Section>
+          {activeSection === 'content' && (
+            <Panel icon={Sparkles} title="Content" hint={CONTENT_TYPE_LABELS[contentType]}>
+              <ContentTabs value={contentType} onChange={setContentType} />
+              <div className="qr-content-form">
+                <ContentEditor data={data} onChange={updateData} />
+              </div>
+              {!built.ok && built.error && (
+                <span className="qr-field-hint" style={{ color: 'var(--danger)' }}>{built.error}</span>
+              )}
+            </Panel>
+          )}
 
-          <Section icon={Shapes} title="Shapes">
-            <ShapeControls
-              moduleShape={options.moduleShape}
-              eyeFrameShape={options.eyeFrameShape}
-              eyeBallShape={options.eyeBallShape}
-              onModuleShape={(moduleShape) => update({ moduleShape })}
-              onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
-              onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
-            />
-          </Section>
+          {activeSection === 'colors' && (
+            <Panel icon={Palette} title="Colors">
+              <ColorControls
+                foreground={options.foreground}
+                background={options.background}
+                eyeColor={options.eyeColor}
+                onForegroundChange={(foreground) => update({ foreground })}
+                onBackgroundChange={(color) => update({ background: { type: 'solid', color } })}
+                onEyeColorChange={(eyeColor) => update({ eyeColor })}
+              />
+            </Panel>
+          )}
 
-          <Section icon={ImagePlus} title="Logo" hint={options.logo ? 'Embedded' : 'Optional'}>
-            <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
-          </Section>
+          {activeSection === 'shapes' && (
+            <Panel icon={Shapes} title="Shapes">
+              <ShapeControls
+                moduleShape={options.moduleShape}
+                eyeFrameShape={options.eyeFrameShape}
+                eyeBallShape={options.eyeBallShape}
+                onModuleShape={(moduleShape) => update({ moduleShape })}
+                onEyeFrameShape={(eyeFrameShape) => update({ eyeFrameShape })}
+                onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
+              />
+            </Panel>
+          )}
 
-          <LogoEcWarning show={autoBump} />
-          <ScannabilityNotice result={scannability} />
+          {activeSection === 'logo' && (
+            <Panel icon={ImagePlus} title="Logo" hint={options.logo ? 'Embedded' : 'Optional'}>
+              <LogoControls logo={options.logo} onChange={(logo) => update({ logo })} />
+            </Panel>
+          )}
 
-          <Section icon={Sliders} title="Format">
-            <ErrorCorrectionPicker
-              value={effectiveOptions.errorCorrection}
-              onChange={handleEcChange}
-            />
-            <SizeMarginControls
-              size={options.size}
-              margin={options.margin}
-              onSize={(size) => update({ size })}
-              onMargin={(margin) => update({ margin })}
-            />
-          </Section>
+          {activeSection === 'format' && (
+            <Panel icon={Sliders} title="Format">
+              <ErrorCorrectionPicker
+                value={effectiveOptions.errorCorrection}
+                onChange={handleEcChange}
+              />
+              <SizeMarginControls
+                size={options.size}
+                margin={options.margin}
+                onSize={(size) => update({ size })}
+                onMargin={(margin) => update({ margin })}
+              />
+            </Panel>
+          )}
 
-          <Section icon={Download} title="Export">
-            <ExportPanel qrRef={qrRef} filenameSeed={effectiveOptions.data} />
-          </Section>
+          {activeSection === 'export' && (
+            <Panel icon={Download} title="Export">
+              <ExportPanel qrRef={qrRef} filenameSeed={effectiveOptions.data} />
+            </Panel>
+          )}
         </div>
+
         <QrPreview options={effectiveOptions} qrRef={qrRef} scannability={scannability} />
       </div>
       <Faq />
