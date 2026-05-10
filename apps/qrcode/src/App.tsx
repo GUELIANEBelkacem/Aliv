@@ -18,7 +18,6 @@ import { assess } from './lib/scannability';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
-import { Hero } from './sections/Hero';
 import { FaqLauncher } from './sections/FaqLauncher';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
@@ -156,7 +155,6 @@ export default function App() {
       shortcutsList={SHORTCUTS_LIST}
       settings={<QrSettings onApplyPreset={handleApplyPreset} onReset={handleReset} />}
     >
-      <Hero />
       <div className="qr-app">
         <SectionRail items={railItems} active={activeSection} onChange={setActiveSection} />
 

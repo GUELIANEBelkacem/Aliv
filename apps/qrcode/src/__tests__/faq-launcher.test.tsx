@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { Hero } from '../sections/Hero';
 import { FaqLauncher } from '../sections/FaqLauncher';
-
-describe('Hero', () => {
-  it('renders the headline', () => {
-    const { getByRole } = render(<Hero />);
-    expect(getByRole('heading', { level: 1 }).textContent).toMatch(/customizable/i);
-  });
-});
 
 describe('FaqLauncher', () => {
   it('hides the FAQ items behind a launcher button', () => {
