@@ -19,7 +19,7 @@ import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
 import { Hero } from './sections/Hero';
-import { Faq } from './sections/Faq';
+import { FaqLauncher } from './sections/FaqLauncher';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
 import { buildContent } from './content/builders';
@@ -236,7 +236,7 @@ export default function App() {
 
         <QrPreview options={effectiveOptions} qrRef={qrRef} scannability={scannability} />
       </div>
-      <Faq />
+      <FaqLauncher />
     </AppShell>
   );
 }
