@@ -68,7 +68,7 @@ describe('LogoUpload', () => {
 
 describe('LogoControls', () => {
   const logo = { src: 'data:image/png;base64,abc', size: 'M' as const, sizeRatio: 0.23, padding: 4, shape: 'square' as const };
-  const baseProps = { moduleCount: 25, qrPixelSize: 280, autoBumpThreshold: 0.2 };
+  const baseProps = { moduleCount: 33, qrPixelSize: 280, ec: 'H' as const };
 
   it('does not render the size selector when no logo set', () => {
     const { queryByRole } = render(
@@ -112,7 +112,8 @@ describe('LogoControls', () => {
     expect(onChange).toHaveBeenCalled();
     const call = onChange.mock.calls.at(-1)?.[0];
     expect(call.size).toBe('S');
-    expect(call.sizeRatio).toBeGreaterThanOrEqual(0.15);
-    expect(call.sizeRatio).toBeLessThanOrEqual(0.35);
+    // Range extended to [0.10, 0.40] so 4 buckets fit at EC=H, moduleCount=33.
+    expect(call.sizeRatio).toBeGreaterThanOrEqual(0.10);
+    expect(call.sizeRatio).toBeLessThanOrEqual(0.40);
   });
 });

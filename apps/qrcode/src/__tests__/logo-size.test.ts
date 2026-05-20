@@ -9,26 +9,23 @@ import {
 } from '../lib/logo-size';
 
 describe('computeLogoSizeBuckets', () => {
-  it('returns at least 2 distinct cell counts for a typical QR + autoBump', () => {
-    // Default URL "https://aliv.app" → ~v2 / count=25 at EC=M.
+  it('returns 4 distinct cell counts at EC=H, moduleCount=33, range [0.10, 0.40]', () => {
+    // Default URL at EC=H gives moduleCount=33. The 4-bucket range yields
+    // cells [5, 7, 9, 11] — the canonical S/M/L/XL layout.
     const buckets = computeLogoSizeBuckets({
-      moduleCount: 25,
-      userEc: undefined,
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      moduleCount: 33,
+      ec: 'H',
+      range: { min: 0.10, max: 0.40 },
     });
-    expect(buckets.length).toBeGreaterThanOrEqual(2);
-    // Each bucket must be a distinct cell count.
-    const cells = buckets.map((b) => b.cells);
-    expect(new Set(cells).size).toBe(cells.length);
+    expect(buckets.length).toBe(4);
+    expect(buckets.map((b) => b.cells)).toEqual([5, 7, 9, 11]);
   });
 
   it('odd cell counts only (qr-code-styling forces oX to be odd)', () => {
     const buckets = computeLogoSizeBuckets({
       moduleCount: 29,
-      userEc: undefined,
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      ec: 'H',
+      range: { min: 0.10, max: 0.40 },
     });
     for (const b of buckets) expect(b.cells % 2).toBe(1);
   });
@@ -36,9 +33,8 @@ describe('computeLogoSizeBuckets', () => {
   it('cell counts strictly increase with bucket index', () => {
     const buckets = computeLogoSizeBuckets({
       moduleCount: 33,
-      userEc: undefined,
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      ec: 'H',
+      range: { min: 0.10, max: 0.40 },
     });
     for (let i = 1; i < buckets.length; i++) {
       expect(buckets[i].cells).toBeGreaterThan(buckets[i - 1].cells);
@@ -48,41 +44,37 @@ describe('computeLogoSizeBuckets', () => {
   it('every bucket ratio lies within the requested range', () => {
     const buckets = computeLogoSizeBuckets({
       moduleCount: 25,
-      userEc: undefined,
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      ec: 'H',
+      range: { min: 0.10, max: 0.40 },
     });
     for (const b of buckets) {
-      expect(b.ratio).toBeGreaterThanOrEqual(0.15);
-      expect(b.ratio).toBeLessThanOrEqual(0.35);
+      expect(b.ratio).toBeGreaterThanOrEqual(0.10);
+      expect(b.ratio).toBeLessThanOrEqual(0.40);
     }
   });
 
-  it('returns more buckets when the user has not touched EC (autoBump available)', () => {
-    // With autoBump the slider can flip between EC=M (lower mult) and EC=H,
-    // exposing a wider range of cell counts than EC=M alone.
-    const withAutoBump = computeLogoSizeBuckets({
+  it('higher EC produces more buckets in the same range', () => {
+    // EC=H tolerates more module damage, so more cell-count steps fit in the
+    // same ratio range.
+    const ecH = computeLogoSizeBuckets({
       moduleCount: 25,
-      userEc: undefined,
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      ec: 'H',
+      range: { min: 0.10, max: 0.40 },
     });
-    const lockedM = computeLogoSizeBuckets({
+    const ecM = computeLogoSizeBuckets({
       moduleCount: 25,
-      userEc: 'M',
-      autoBumpThreshold: 0.2,
-      range: { min: 0.15, max: 0.35 },
+      ec: 'M',
+      range: { min: 0.10, max: 0.40 },
     });
-    expect(withAutoBump.length).toBeGreaterThanOrEqual(lockedM.length);
+    expect(ecH.length).toBeGreaterThanOrEqual(ecM.length);
   });
 
   it('empty list when moduleCount is 0', () => {
     expect(
       computeLogoSizeBuckets({
         moduleCount: 0,
-        userEc: 'M',
-        autoBumpThreshold: 0.2,
-        range: { min: 0.15, max: 0.35 },
+        ec: 'M',
+        range: { min: 0.10, max: 0.40 },
       }),
     ).toEqual([]);
   });

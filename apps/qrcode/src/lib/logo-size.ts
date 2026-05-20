@@ -1,6 +1,5 @@
-import type { ErrorCorrection, LogoSizeLabel, QrOptions } from './types';
+import type { ErrorCorrection, LogoSizeLabel } from './types';
 import { LOGO_SIZE_LABELS } from './types';
-import { EC_RANK } from './ec-rules';
 
 /**
  * qr-code-styling renders an embedded logo at `oX * dotSize` where
@@ -39,23 +38,16 @@ export interface LogoSizeBucket {
 
 interface ComputeOpts {
   moduleCount: number;
-  /** EC level the user has fixed in advanced mode, or undefined to auto. */
-  userEc?: ErrorCorrection;
   /**
-   * EC floor implied by the padding (quiet zone). Only consulted when `userEc`
-   * is undefined — i.e. in auto mode. Lets bucket math reflect a Q/H bump
-   * coming from the margin alone.
+   * The EC level the engine will actually be at. The bucket math computes
+   * the discrete cell-count steps achievable at this EC. No auto-bump magic
+   * inside the math — keeps the bucket ratios matching what the engine will
+   * actually render.
    */
-  marginEc?: ErrorCorrection;
-  /** Threshold above which the app autoBumps EC to H. */
-  autoBumpThreshold: number;
+  ec: ErrorCorrection;
   range: { min: number; max: number };
   /** Samples per unit of range. Higher = more precise bucket boundaries. */
   samples?: number;
-}
-
-function maxEc(a: ErrorCorrection, b: ErrorCorrection): ErrorCorrection {
-  return EC_RANK[a] >= EC_RANK[b] ? a : b;
 }
 
 /**
@@ -63,17 +55,13 @@ function maxEc(a: ErrorCorrection, b: ErrorCorrection): ErrorCorrection {
  * same cell count. Return one representative ratio per distinct bucket.
  */
 export function computeLogoSizeBuckets(opts: ComputeOpts): LogoSizeBucket[] {
-  const { moduleCount, userEc, marginEc, autoBumpThreshold, range, samples = 200 } = opts;
+  const { moduleCount, ec, range, samples = 200 } = opts;
   if (moduleCount <= 0) return [];
 
-  // Map each sample to its rendered cell count, accounting for autoBump.
-  // When userEc is set the user is in advanced mode and the EC is locked.
-  // Otherwise the effective EC per sample = max(marginEc floor, ratio-bump).
+  // Map each sample to its rendered cell count at the effective EC.
   const samplesByRatio: { ratio: number; cells: number }[] = [];
   for (let i = 0; i <= samples; i++) {
     const ratio = range.min + (i / samples) * (range.max - range.min);
-    const ratioBump: ErrorCorrection = ratio > autoBumpThreshold ? 'H' : 'M';
-    const ec = userEc ?? maxEc(marginEc ?? 'M', ratioBump);
     const cells = cellsForRatio(ratio, ec, moduleCount);
     if (cells > 0) samplesByRatio.push({ ratio, cells });
   }
@@ -153,15 +141,4 @@ export function nearestBucketIndex(buckets: LogoSizeBucket[], ratio: number): nu
     }
   }
   return best;
-}
-
-/** Resolve the EC level that will actually be applied for a sizeRatio. */
-export function effectiveEcFor(
-  options: QrOptions,
-  userTouchedEc: boolean,
-  autoBumpThreshold: number,
-): ErrorCorrection {
-  if (userTouchedEc) return options.errorCorrection;
-  const bigLogo = !!(options.logo && options.logo.sizeRatio > autoBumpThreshold);
-  return bigLogo ? 'H' : options.errorCorrection;
 }

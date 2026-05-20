@@ -42,25 +42,22 @@ describe('recommendedEc', () => {
     expect(recommendedEc(opts())).toBe('M');
   });
 
-  it('S and M logos do not bump (label-based, not ratio-based)', () => {
-    expect(recommendedEc(opts({ logo: logo('S', 0.16) }))).toBe('M');
-    // M with a ratio above 0.20 still does NOT bump — ratio is decoupled
-    // because it's a function of the engine's moduleCount and would cause a
-    // feedback loop with the bucket math.
-    expect(recommendedEc(opts({ logo: logo('M', 0.25) }))).toBe('M');
-  });
-
-  it('L and XL labels bump to H', () => {
-    expect(recommendedEc(opts({ logo: logo('L', 0.22) }))).toBe('H');
-    expect(recommendedEc(opts({ logo: logo('XL', 0.30) }))).toBe('H');
+  it('any logo bumps EC to H regardless of size label', () => {
+    // The auto-EC rule is "logo present → H" because every logo carves out
+    // modules from the QR. Reading the size label or the snapped ratio
+    // re-introduces a feedback loop with the bucket math (REFRESH_PLAN §B).
+    expect(recommendedEc(opts({ logo: logo('S', 0.16) }))).toBe('H');
+    expect(recommendedEc(opts({ logo: logo('M', 0.20) }))).toBe('H');
+    expect(recommendedEc(opts({ logo: logo('L', 0.30) }))).toBe('H');
+    expect(recommendedEc(opts({ logo: logo('XL', 0.35) }))).toBe('H');
   });
 
   it('H from margin alone even with no logo', () => {
     expect(recommendedEc(opts({ margin: 50 }))).toBe('H'); // 50/280 ≈ 17.9 %
   });
 
-  it('label H wins over margin Q', () => {
-    expect(recommendedEc(opts({ margin: 30, logo: logo('L') }))).toBe('H');
+  it('logo H wins over margin Q', () => {
+    expect(recommendedEc(opts({ margin: 30, logo: logo('S') }))).toBe('H');
   });
 });
 

@@ -18,11 +18,8 @@ interface LogoControlsProps {
   moduleCount: number;
   /** Inscribed QR pixel size from the frame layout — drives dotSize. */
   qrPixelSize: number;
-  /** EC the user has explicitly locked, or undefined if autoBump decides. */
-  userEc?: ErrorCorrection;
-  /** EC floor implied by the padding when autoBump is allowed (auto mode). */
-  marginEc?: ErrorCorrection;
-  autoBumpThreshold: number;
+  /** The EC the engine will actually be at — drives bucket cell counts. */
+  ec: ErrorCorrection;
 }
 
 const SHAPES = [
@@ -44,9 +41,7 @@ export function LogoControls({
   onChange,
   moduleCount,
   qrPixelSize,
-  userEc,
-  marginEc,
-  autoBumpThreshold,
+  ec,
 }: LogoControlsProps) {
   const [original, setOriginal] = useState<string | undefined>(logo?.src);
 
@@ -65,13 +60,13 @@ export function LogoControls({
     if (moduleCount <= 0) return FALLBACK_BUCKETS;
     const computed = computeLogoSizeBuckets({
       moduleCount,
-      userEc,
-      marginEc,
-      autoBumpThreshold,
-      range: { min: 0.15, max: 0.35 },
+      ec,
+      // Extended range so EC=H + moduleCount=33 produces 4 buckets
+      // (cells 5/7/9/11) instead of just 2.
+      range: { min: 0.10, max: 0.40 },
     });
     return computed.length > 0 ? computed : FALLBACK_BUCKETS;
-  }, [moduleCount, userEc, marginEc, autoBumpThreshold]);
+  }, [moduleCount, ec]);
 
   const items = useMemo(() => labeledBuckets(buckets), [buckets]);
   // Clamp the active label to the available bucket count — e.g. user picked XL

@@ -15,12 +15,7 @@ import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { SectionRail, type RailItem } from './components/SectionRail';
 import { assess } from './lib/scannability';
 import { frameLayout } from './lib/frame-shapes';
-import {
-  EC_RANK,
-  LOGO_BUMP_H_THRESHOLD,
-  recommendedEc,
-  recommendedEcFromMargin,
-} from './lib/ec-rules';
+import { EC_RANK, recommendedEc } from './lib/ec-rules';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
@@ -31,10 +26,6 @@ import { DEFAULT_CONTENT } from './content/defaults';
 import { buildContent } from './content/builders';
 import type { ContentData, ContentType } from './content/types';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
-
-// Backwards-compat re-export — historical name kept for tests that import it.
-// New code should read LOGO_BUMP_H_THRESHOLD from lib/ec-rules.
-export const LARGE_LOGO_THRESHOLD = LOGO_BUMP_H_THRESHOLD;
 
 const SHORTCUTS_LIST = [
   { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
@@ -283,9 +274,7 @@ export default function App() {
                 onChange={(logo) => update({ logo })}
                 moduleCount={moduleCount}
                 qrPixelSize={layout.qr.size}
-                userEc={advancedEc ? options.errorCorrection : undefined}
-                marginEc={advancedEc ? undefined : recommendedEcFromMargin(options)}
-                autoBumpThreshold={LOGO_BUMP_H_THRESHOLD}
+                ec={effectiveOptions.errorCorrection}
               />
             </Panel>
           )}
