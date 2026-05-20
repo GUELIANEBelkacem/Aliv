@@ -5,7 +5,7 @@ import { copyPngFromOptions } from './lib/export';
 import { CONTENT_TYPE_ORDER } from './content/order';
 import { QrPreview } from './components/QrPreview';
 import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
-import { SizeMarginControls } from './components/SizeMarginControls';
+import { PaddingControl } from './components/PaddingControl';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
@@ -247,6 +247,10 @@ export default function App() {
                 onEyeBallShape={(eyeBallShape) => update({ eyeBallShape })}
                 onFrameShape={(frameShape) => update({ frameShape })}
               />
+              <PaddingControl
+                margin={options.margin}
+                onMargin={(margin) => update({ margin })}
+              />
             </Panel>
           )}
 
@@ -268,10 +272,6 @@ export default function App() {
               <ErrorCorrectionPicker
                 value={effectiveOptions.errorCorrection}
                 onChange={handleEcChange}
-              />
-              <SizeMarginControls
-                margin={options.margin}
-                onMargin={(margin) => update({ margin })}
               />
             </Panel>
           )}

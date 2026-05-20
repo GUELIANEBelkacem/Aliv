@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { ErrorCorrectionPicker } from '../components/ErrorCorrectionPicker';
-import { SizeMarginControls } from '../components/SizeMarginControls';
+import { PaddingControl } from '../components/PaddingControl';
 
 describe('ErrorCorrectionPicker', () => {
   it('renders all 4 levels and marks the current one', () => {
@@ -20,11 +20,18 @@ describe('ErrorCorrectionPicker', () => {
   });
 });
 
-describe('SizeMarginControls', () => {
-  it('quiet-zone slider emits Number on change', () => {
+describe('PaddingControl', () => {
+  it('renders as "Padding" (was "Quiet zone") and emits Number on change', () => {
     const onMargin = vi.fn();
-    const { getByLabelText } = render(<SizeMarginControls margin={12} onMargin={onMargin} />);
-    fireEvent.change(getByLabelText('Quiet zone'), { target: { value: '20' } });
+    const { getByLabelText } = render(<PaddingControl margin={12} onMargin={onMargin} />);
+    const slider = getByLabelText('Padding') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: '20' } });
     expect(onMargin).toHaveBeenCalledWith(20);
+  });
+
+  it('caps at 48 (raised from 40)', () => {
+    const { getByLabelText } = render(<PaddingControl margin={12} onMargin={() => {}} />);
+    const slider = getByLabelText('Padding') as HTMLInputElement;
+    expect(Number(slider.max)).toBe(48);
   });
 });
