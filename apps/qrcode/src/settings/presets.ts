@@ -7,6 +7,12 @@ export interface Preset {
   // Presets carry the visual subset of QR options. `size` lives outside so a
   // future size control isn't snapped back on preset apply (REVIEW §3.5).
   options: Omit<QrOptions, 'data' | 'logo' | 'size'>;
+  /**
+   * When true, applying this preset flips the Advanced toggle on so the
+   * preset's explicit `errorCorrection` is honoured. Without this the auto
+   * rule silently overrides whatever the preset asked for.
+   */
+  forcesAdvanced?: boolean;
 }
 
 const base = (overrides: Partial<Preset['options']>): Preset['options'] => ({
@@ -78,6 +84,9 @@ export const PRESETS: Preset[] = [
       errorCorrection: 'H',
       moduleShape: 'square',
     }),
+    // EC=H is the whole point of this preset — flip Advanced so the auto
+    // rule doesn't quietly downgrade it on a small logo + small padding.
+    forcesAdvanced: true,
   },
 ];
 

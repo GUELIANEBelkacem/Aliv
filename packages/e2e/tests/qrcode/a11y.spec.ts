@@ -19,7 +19,7 @@ test.describe('qrcode · a11y', () => {
   });
 
   test('A2: each rail panel passes axe-core (serious/critical)', async ({ page }) => {
-    const rails: RailId[] = ['content', 'colors', 'shapes', 'logo', 'format', 'export'];
+    const rails: RailId[] = ['content', 'colors', 'shapes', 'logo', 'advanced', 'export'];
     for (const id of rails) {
       await qr.selectRail(id);
       await qr.waitForPreviewSettle();

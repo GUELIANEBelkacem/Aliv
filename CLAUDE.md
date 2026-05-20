@@ -110,8 +110,8 @@ The plan that drove these is `PLATFORM_BUILD_PLAN.md`.
 | @aliv/ui | 55 |
 | @aliv/json-xml | 201 |
 | @aliv/web | 7 |
-| @aliv/qrcode | 140 |
-| **Total unit** | **403** |
+| @aliv/qrcode | 175 |
+| **Total unit** | **438** |
 | @aliv/e2e (Playwright) | 91 specs (76 active, 15 skipped) |
 
 ## Performance budgets (current)

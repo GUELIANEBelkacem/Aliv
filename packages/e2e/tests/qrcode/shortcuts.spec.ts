@@ -26,13 +26,13 @@ test.describe('qrcode · shortcuts & modal', () => {
     await expect(qr.rail('colors')).toHaveClass(/is-active/);
   });
 
-  test('K3: Alt+3..6 switch to Shapes, Logo, Format, Export rails (F6)', async ({ page }) => {
+  test('K3: Alt+3..6 switch to Shapes, Logo, Advanced, Export rails (F6)', async ({ page }) => {
     await page.keyboard.press('Alt+3');
     await expect(qr.rail('shapes')).toHaveClass(/is-active/);
     await page.keyboard.press('Alt+4');
     await expect(qr.rail('logo')).toHaveClass(/is-active/);
     await page.keyboard.press('Alt+5');
-    await expect(qr.rail('format')).toHaveClass(/is-active/);
+    await expect(qr.rail('advanced')).toHaveClass(/is-active/);
     await page.keyboard.press('Alt+6');
     await expect(qr.rail('export')).toHaveClass(/is-active/);
   });

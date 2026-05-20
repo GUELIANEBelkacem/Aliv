@@ -4,7 +4,7 @@ import { AppShell, type Shortcut } from '@aliv/ui';
 import { copyPngFromOptions } from './lib/export';
 import { CONTENT_TYPE_ORDER } from './content/order';
 import { QrPreview } from './components/QrPreview';
-import { ErrorCorrectionPicker } from './components/ErrorCorrectionPicker';
+import { AdvancedPanel } from './components/AdvancedPanel';
 import { PaddingControl } from './components/PaddingControl';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
@@ -43,7 +43,7 @@ const SHORTCUTS_LIST = [
   { keys: 'Alt+1..6', description: 'Switch tool section' },
 ];
 
-type SectionId = 'content' | 'colors' | 'shapes' | 'logo' | 'format' | 'export';
+type SectionId = 'content' | 'colors' | 'shapes' | 'logo' | 'advanced' | 'export';
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   text: 'Plain text',
@@ -81,7 +81,11 @@ export default function App() {
   const [contentType, setContentType] = useState<ContentType>('url');
   const [contentMap, setContentMap] = useState<Record<ContentType, ContentData>>(DEFAULT_CONTENT);
   const [options, setOptions] = useState<QrOptions>(DEFAULT_QR_OPTIONS);
-  const [userTouchedEc, setUserTouchedEc] = useState(false);
+  // When true the user is in advanced mode and the EC picker is exposed —
+  // their manual choice wins. When false, recommendedEc(opts) drives the
+  // effective level. Toggling off/on preserves options.errorCorrection, so
+  // the manual pick is restored when Advanced comes back on.
+  const [advancedEc, setAdvancedEc] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionId>('content');
   const [currentPresetId, setCurrentPresetId] = useState<string | undefined>(undefined);
   const [moduleCount, setModuleCount] = useState(0);
@@ -100,9 +104,9 @@ export default function App() {
   }
 
   // In auto mode the EC is derived from logo size and padding together
-  // (lib/ec-rules.recommendedEc). userTouchedEc=true switches to manual.
+  // (lib/ec-rules.recommendedEc). advancedEc=true switches to manual.
   const recommended = recommendedEc(options);
-  const autoBumped = !userTouchedEc && EC_RANK[recommended] > EC_RANK[options.errorCorrection];
+  const autoBumped = !advancedEc && EC_RANK[recommended] > EC_RANK[options.errorCorrection];
 
   // Why did auto-EC fire? (logo / padding / both — drives the banner copy.)
   const bigLogo = !!(options.logo && options.logo.sizeRatio > LOGO_BUMP_H_THRESHOLD);
@@ -121,8 +125,8 @@ export default function App() {
   const effectiveOptions = useMemo<QrOptions>(() => ({
     ...options,
     data: built.ok ? (built.value ?? '') : ' ',
-    errorCorrection: userTouchedEc ? options.errorCorrection : recommended,
-  }), [options, built.ok, built.value, userTouchedEc, recommended]);
+    errorCorrection: advancedEc ? options.errorCorrection : recommended,
+  }), [options, built.ok, built.value, advancedEc, recommended]);
 
   // The frame layout decides the *inscribed* pixel size of the QR engine
   // (smaller than options.size when the frame is a circle). LogoControls needs
@@ -137,19 +141,19 @@ export default function App() {
   const valid = built.ok;
 
   function handleEcChange(level: QrOptions['errorCorrection']) {
-    setUserTouchedEc(true);
+    setAdvancedEc(true);
     update({ errorCorrection: level });
   }
 
   function handleApplyPreset(preset: Preset) {
     setOptions((prev) => applyPreset(prev, preset));
-    setUserTouchedEc(false);
+    setAdvancedEc(preset.forcesAdvanced ?? false);
     setCurrentPresetId(preset.id);
   }
 
   function handleReset(reset: QrOptions) {
     setOptions(reset);
-    setUserTouchedEc(false);
+    setAdvancedEc(false);
     setCurrentPresetId(undefined);
     setContentType('url');
     setContentMap(DEFAULT_CONTENT);
@@ -176,8 +180,8 @@ export default function App() {
     { id: 'shapes',  label: 'Shapes',  icon: Shapes },
     { id: 'logo',    label: 'Logo',    icon: ImagePlus, badge: autoBumpVisible ? 'warn' : undefined },
     {
-      id: 'format',
-      label: 'Format',
+      id: 'advanced',
+      label: 'Advanced',
       icon: Sliders,
       badge: scannability.level === 'fail' ? 'fail' : scannability.level === 'warn' ? 'warn' : undefined,
     },
@@ -277,18 +281,21 @@ export default function App() {
                 onChange={(logo) => update({ logo })}
                 moduleCount={moduleCount}
                 qrPixelSize={layout.qr.size}
-                userEc={userTouchedEc ? options.errorCorrection : undefined}
-                marginEc={userTouchedEc ? undefined : recommendedEcFromMargin(options)}
+                userEc={advancedEc ? options.errorCorrection : undefined}
+                marginEc={advancedEc ? undefined : recommendedEcFromMargin(options)}
                 autoBumpThreshold={LOGO_BUMP_H_THRESHOLD}
               />
             </Panel>
           )}
 
-          {activeSection === 'format' && (
-            <Panel icon={Sliders} title="Format">
-              <ErrorCorrectionPicker
-                value={effectiveOptions.errorCorrection}
-                onChange={handleEcChange}
+          {activeSection === 'advanced' && (
+            <Panel icon={Sliders} title="Advanced">
+              <AdvancedPanel
+                options={options}
+                effectiveEc={effectiveOptions.errorCorrection}
+                advancedEc={advancedEc}
+                onAdvancedChange={setAdvancedEc}
+                onEcChange={handleEcChange}
               />
             </Panel>
           )}

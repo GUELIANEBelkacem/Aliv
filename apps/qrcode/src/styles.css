@@ -651,6 +651,26 @@ body {
 .qr-checkbox-label { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
 .qr-checkbox-label input[type="checkbox"] { accent-color: var(--accent); }
 
+.qr-advanced-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+.qr-advanced-status-row { display: flex; align-items: center; justify-content: space-between; }
+.qr-advanced-status-label { font-size: 0.85rem; color: var(--text); font-weight: 500; }
+.qr-advanced-status-value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
 .qr-actions {
   display: flex;
   gap: var(--space-2);

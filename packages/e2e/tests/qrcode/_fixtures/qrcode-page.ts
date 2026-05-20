@@ -2,7 +2,7 @@ import type { Page, Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
 import { APP_URLS } from '../../../playwright.config';
 
-export type RailId = 'content' | 'colors' | 'shapes' | 'logo' | 'format' | 'export';
+export type RailId = 'content' | 'colors' | 'shapes' | 'logo' | 'advanced' | 'export';
 export type ContentTypeId =
   | 'text' | 'url' | 'wifi' | 'vcard'
   | 'email' | 'sms' | 'phone' | 'geo' | 'calendar';
