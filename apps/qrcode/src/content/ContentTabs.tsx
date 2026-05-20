@@ -27,7 +27,7 @@ export function ContentTabs({ value, onChange }: ContentTabsProps) {
       label: (
         <span data-content-type={tab.value} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Icon aria-hidden="true" />
-          <span className="qr-tab-label">{tab.label}</span>
+          {tab.label}
         </span>
       ),
     };

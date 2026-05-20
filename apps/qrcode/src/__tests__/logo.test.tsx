@@ -52,7 +52,7 @@ describe('LogoUpload', () => {
     fireEvent.change(input);
     await waitFor(() => expect(onChange).toHaveBeenCalled());
     expect(onChange.mock.calls[0][0]).toMatch(/^data:/);
-    expect(getByTestId('logo-drop')).toBeInTheDocument();
+    expect(getByTestId('qr-logo-dropzone')).toBeInTheDocument();
   });
 
   it('shows an error for an unsupported MIME', async () => {
@@ -68,22 +68,37 @@ describe('LogoUpload', () => {
 
 describe('LogoControls', () => {
   const logo = { src: 'data:image/png;base64,abc', sizeRatio: 0.2, padding: 4, shape: 'square' as const };
+  const baseProps = { moduleCount: 25, autoBumpThreshold: 0.2 };
 
   it('does not render size/padding/shape when no logo set', () => {
-    const { queryByLabelText } = render(<LogoControls logo={undefined} onChange={() => {}} />);
+    const { queryByLabelText } = render(
+      <LogoControls logo={undefined} onChange={() => {}} {...baseProps} />,
+    );
     expect(queryByLabelText('Size')).toBeNull();
   });
 
   it('shows controls when a logo is set', () => {
-    const { getByLabelText } = render(<LogoControls logo={logo} onChange={() => {}} />);
+    const { getByLabelText } = render(
+      <LogoControls logo={logo} onChange={() => {}} {...baseProps} />,
+    );
     expect(getByLabelText('Size')).toBeInTheDocument();
     expect(getByLabelText('Padding')).toBeInTheDocument();
   });
 
-  it('emits sizeRatio change', () => {
+  it('emits a bucketed sizeRatio when the size slider moves', () => {
     const onChange = vi.fn();
-    const { getByLabelText } = render(<LogoControls logo={logo} onChange={onChange} />);
-    fireEvent.change(getByLabelText('Size'), { target: { value: '0.3' } });
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ sizeRatio: 0.3 }));
+    const { getByLabelText } = render(
+      <LogoControls logo={logo} onChange={onChange} {...baseProps} />,
+    );
+    // The size slider now exposes bucket indices, not raw ratios. Picking
+    // the highest index must produce one of the precomputed bucket ratios,
+    // never the raw input value.
+    fireEvent.change(getByLabelText('Size'), { target: { value: '2' } });
+    expect(onChange).toHaveBeenCalled();
+    const call = onChange.mock.calls.at(-1)?.[0];
+    expect(call.sizeRatio).toBeGreaterThanOrEqual(0.15);
+    expect(call.sizeRatio).toBeLessThanOrEqual(0.35);
+    // Whatever ratio we get, it isn't the literal slider input.
+    expect(call.sizeRatio).not.toBe(2);
   });
 });

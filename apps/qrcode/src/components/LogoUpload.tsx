@@ -36,9 +36,16 @@ export function LogoUpload({ src, onChange }: LogoUploadProps) {
           if (file) handleFile(file);
         }}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         role="button"
         tabIndex={0}
-        data-testid="logo-drop"
+        aria-label="Upload logo image"
+        data-testid="qr-logo-dropzone"
       >
         {src ? (
           <img src={src} alt="Logo preview" className="qr-logo-preview" />

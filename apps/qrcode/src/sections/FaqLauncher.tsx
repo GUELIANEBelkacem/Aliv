@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HelpCircle, X } from 'lucide-react';
 
 const ITEMS = [
@@ -28,13 +28,54 @@ const ITEMS = [
   },
 ];
 
+function focusableNodes(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  );
+}
+
 export function FaqLauncher() {
   const [open, setOpen] = useState(false);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false); }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      launcherRef.current?.focus();
+      return;
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const nodes = focusableNodes(modalRef.current);
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
     window.addEventListener('keydown', onKey);
+    // Move focus to the close button (first interactive element).
+    const nodes = modalRef.current ? focusableNodes(modalRef.current) : [];
+    nodes[0]?.focus();
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
@@ -45,12 +86,20 @@ export function FaqLauncher() {
         className="qr-faq-launcher"
         onClick={() => setOpen(true)}
         aria-label="Open FAQ"
+        ref={launcherRef}
       >
         <HelpCircle aria-hidden="true" />
         <span>FAQ</span>
       </button>
       {open && (
-        <div className="qr-faq-modal-root" role="dialog" aria-label="Frequently asked questions" aria-modal="true">
+        <div
+          className="qr-faq-modal-root"
+          role="dialog"
+          aria-label="Frequently asked questions"
+          aria-modal="true"
+          data-testid="qr-modal-faq"
+          ref={modalRef}
+        >
           <div className="qr-faq-modal-backdrop" onClick={() => setOpen(false)} />
           <div className="qr-faq-modal">
             <header className="qr-faq-modal-header">

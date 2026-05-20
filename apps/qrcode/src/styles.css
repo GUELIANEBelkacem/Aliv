@@ -141,57 +141,38 @@ body {
   align-self: flex-start;
 }
 
-/* The QR preview card — the centerpiece. Glass + halo + ring + float. */
+/* The QR preview card — the centerpiece. Glass + halo + ring + float.
+ * Frame shape is now owned by QrPreview.tsx (frame-shapes.ts), which sizes
+ * the stage and positions the QR inside an inscribed area. The decorative
+ * accent ring + glow stay in CSS via ::before/::after. */
 .qr-preview-stage {
   position: relative;
-  padding: 4px;
-  border-radius: var(--qr-frame-radius, var(--radius-2xl));
   isolation: isolate;
+  animation: qr-float 6s ease-in-out infinite;
 }
-.qr-preview-stage[data-frame="circle"] { aspect-ratio: 1; }
-.qr-preview-stage[data-frame="circle"] .qr-preview {
-  border-radius: 50%;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.qr-preview-stage::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1.5px;
-  background: conic-gradient(from 220deg, var(--accent), color-mix(in oklab, var(--accent) 25%, transparent) 50%, var(--accent));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+.qr-frame-backdrop {
   z-index: 0;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
 }
 .qr-preview-stage::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 0 80px var(--accent-glow), 0 24px 80px rgba(0,0,0,0.5);
+  inset: -8px;
+  border-radius: var(--qr-frame-radius, var(--radius-2xl));
+  box-shadow: 0 0 80px var(--accent-glow);
   pointer-events: none;
   z-index: -1;
 }
 .qr-preview {
-  background: white;
-  border-radius: calc(var(--qr-frame-radius, var(--radius-2xl)) - 4px);
-  padding: var(--space-4);
-  display: inline-block;
-  position: relative;
   z-index: 1;
-  animation: qr-float 6s ease-in-out infinite;
 }
 .qr-preview canvas, .qr-preview svg {
+  display: block;
+  width: 100%;
+  height: 100%;
   transition: opacity var(--dur-base) var(--ease-out);
 }
+.qr-preview-wrap[data-valid="false"] .qr-preview { opacity: 0.45; filter: grayscale(0.4); }
 @keyframes qr-float {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-3px); }
@@ -598,13 +579,22 @@ body {
   border-color: var(--accent);
   box-shadow: inset 0 1px 0 var(--glass-highlight), 0 0 24px var(--accent-glow);
 }
-.qr-preset-swatch {
-  display: block;
-  width: 44px;
-  height: 44px;
+.qr-preset-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-sm);
-  border: 2px solid;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.4);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--glass-border);
+  overflow: hidden;
+}
+.qr-preset-thumb > svg,
+.qr-preset-thumb > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .qr-preset-name { font-size: 0.85rem; font-weight: 500; }
 

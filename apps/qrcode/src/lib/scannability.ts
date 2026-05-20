@@ -35,9 +35,11 @@ export function assess(opts: QrOptions): ScannabilityResult {
     }
   }
 
-  if (opts.logo && opts.logo.sizeRatio > 0.3 && opts.errorCorrection !== 'H') {
+  // Unified threshold with App.tsx's LARGE_LOGO_THRESHOLD (REVIEW §3.4). The
+  // qr-code-styling rule of thumb is that a logo > 20% of QR area needs H.
+  if (opts.logo && opts.logo.sizeRatio > 0.2 && opts.errorCorrection !== 'H') {
     bump('warn');
-    messages.push(`Logo covers >30% of the QR but error correction is ${opts.errorCorrection}. Use H for safety.`);
+    messages.push(`Logo covers >20% of the QR but error correction is ${opts.errorCorrection}. Use H for safety.`);
   }
 
   return { level, messages };

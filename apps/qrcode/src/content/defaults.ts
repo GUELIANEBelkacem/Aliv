@@ -8,6 +8,6 @@ export const DEFAULT_CONTENT: Record<ContentType, ContentData> = {
   email: { type: 'email', to: '' },
   sms: { type: 'sms', phone: '' },
   phone: { type: 'phone', phone: '' },
-  geo: { type: 'geo', lat: 0, lon: 0 },
+  geo: { type: 'geo', lat: undefined, lon: undefined },
   calendar: { type: 'calendar', title: '', start: '', end: '' },
 };

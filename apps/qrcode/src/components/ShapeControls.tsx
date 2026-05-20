@@ -18,6 +18,7 @@ const EYE_SHAPES: { value: EyeShape; label: string }[] = [
 ];
 
 const FRAME_SHAPES: { value: FrameShape; label: string }[] = [
+  { value: 'none', label: 'None' },
   { value: 'square', label: 'Square' },
   { value: 'rounded', label: 'Rounded' },
   { value: 'circle', label: 'Circle' },
@@ -52,7 +53,7 @@ export function ShapeControls({
           value={frameShape}
           options={FRAME_SHAPES.map((s) => ({
             value: s.value,
-            label: <span data-shape={s.value}>{s.label}</span>,
+            label: s.label,
           }))}
           onChange={onFrameShape}
           ariaLabel="Frame"
@@ -66,7 +67,7 @@ export function ShapeControls({
           value={moduleShape}
           options={MODULE_SHAPES.map((s) => ({
             value: s.value,
-            label: <span data-shape={s.value}>{s.label}</span>,
+            label: s.label,
           }))}
           onChange={onModuleShape}
           ariaLabel="Modules"
@@ -80,7 +81,7 @@ export function ShapeControls({
           value={eyeFrameShape}
           options={EYE_SHAPES.map((s) => ({
             value: s.value,
-            label: <span data-shape={s.value}>{s.label}</span>,
+            label: s.label,
           }))}
           onChange={onEyeFrameShape}
           ariaLabel="Eye frame"
@@ -93,7 +94,7 @@ export function ShapeControls({
           value={eyeBallShape}
           options={EYE_SHAPES.map((s) => ({
             value: s.value,
-            label: <span data-shape={s.value}>{s.label}</span>,
+            label: s.label,
           }))}
           onChange={onEyeBallShape}
           ariaLabel="Eye ball"

@@ -48,6 +48,9 @@ function fillToOptions(fill: ColorFill) {
 export function toStylingOptions(opts: QrOptions): QrStylingOptions {
   const fg = fillToOptions(opts.foreground);
   const out: QrStylingOptions = {
+    // Force SVG so the engine output is consistent across browsers and the
+    // export pipeline can compose it back into a framed outer SVG.
+    type: 'svg',
     width: opts.size,
     height: opts.size,
     margin: opts.margin,

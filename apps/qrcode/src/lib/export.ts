@@ -1,4 +1,7 @@
-import type QRCodeStyling from 'qr-code-styling';
+import QRCodeStyling from 'qr-code-styling';
+import { toStylingOptions } from './qr-engine';
+import { frameLayout, composeFramedSvg, type FrameLayout } from './frame-shapes';
+import type { QrOptions } from './types';
 
 export function sanitizeFilename(input: string, fallback: string): string {
   const cleaned = input
@@ -12,8 +15,7 @@ export function sanitizeFilename(input: string, fallback: string): string {
 }
 
 export function defaultFilename(content: string): string {
-  const base = sanitizeFilename(content, `aliv-qrcode-${Date.now()}`);
-  return base;
+  return sanitizeFilename(content, `aliv-qrcode-${Date.now()}`);
 }
 
 function triggerDownload(blob: Blob, filename: string): void {
@@ -27,35 +29,81 @@ function triggerDownload(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export async function downloadPng(qr: QRCodeStyling, filename: string): Promise<void> {
-  const data = await qr.getRawData('png');
-  if (!data) throw new Error('Could not generate PNG.');
-  const blob = data instanceof Blob ? data : new Blob([data as unknown as ArrayBuffer], { type: 'image/png' });
+// Each export builds a fresh QRCodeStyling instance from the source options so
+// the live preview is never mutated by a resolution change (REVIEW §1.1). The
+// frame is then composed on top so the file matches what users see (§8.4).
+function buildExportInstance(options: QrOptions, qrSize: number): QRCodeStyling {
+  const styling = toStylingOptions({ ...options, size: qrSize });
+  return new QRCodeStyling(styling);
+}
+
+async function getQrSvgString(options: QrOptions, qrSize: number): Promise<string> {
+  const qr = buildExportInstance(options, qrSize);
+  const data = await qr.getRawData('svg');
+  if (!data) throw new Error('Could not generate SVG.');
+  if (typeof data === 'string') return data;
+  if (data instanceof Blob) return await data.text();
+  return new TextDecoder().decode(data as unknown as ArrayBuffer);
+}
+
+async function composeForExport(options: QrOptions, totalSize: number): Promise<{ svg: string; layout: FrameLayout }> {
+  const layout = frameLayout(options.frameShape, totalSize, options.background.color);
+  const qrSvg = await getQrSvgString(options, layout.qr.size);
+  return { svg: composeFramedSvg(qrSvg, layout), layout };
+}
+
+function rasterizeSvgToPng(svg: string, width: number, height: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error('Canvas 2D context unavailable.'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url);
+        if (!blob) reject(new Error('Canvas toBlob failed.'));
+        else resolve(blob);
+      }, 'image/png');
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('SVG → PNG rasterisation failed.'));
+    };
+    img.src = url;
+  });
+}
+
+export async function exportPng(
+  options: QrOptions,
+  resolution: number,
+  filename: string,
+): Promise<void> {
+  const { svg } = await composeForExport(options, resolution);
+  const blob = await rasterizeSvgToPng(svg, resolution, resolution);
   triggerDownload(blob, `${filename}.png`);
 }
 
-export async function downloadSvg(qr: QRCodeStyling, filename: string): Promise<void> {
-  const data = await qr.getRawData('svg');
-  if (!data) throw new Error('Could not generate SVG.');
-  let blob: Blob;
-  if (data instanceof Blob) {
-    blob = data;
-  } else if (typeof data === 'string') {
-    blob = new Blob([data], { type: 'image/svg+xml' });
-  } else {
-    blob = new Blob([data as unknown as ArrayBuffer], { type: 'image/svg+xml' });
-  }
-  triggerDownload(blob, `${filename}.svg`);
+export async function exportSvg(options: QrOptions, filename: string): Promise<void> {
+  const { svg } = await composeForExport(options, options.size);
+  triggerDownload(new Blob([svg], { type: 'image/svg+xml' }), `${filename}.svg`);
 }
 
-export async function copyPngToClipboard(qr: QRCodeStyling): Promise<boolean> {
+export async function copyPngFromOptions(options: QrOptions): Promise<boolean> {
   if (typeof navigator === 'undefined' || !navigator.clipboard?.write) return false;
-  const data = await qr.getRawData('png');
-  if (!data) return false;
-  const blob = data instanceof Blob ? data : new Blob([data as unknown as ArrayBuffer], { type: 'image/png' });
+  const ClipboardItemCtor = (globalThis as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
+  if (!ClipboardItemCtor) return false;
   try {
-    const ClipboardItemCtor = (globalThis as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
-    if (!ClipboardItemCtor) return false;
+    const { svg } = await composeForExport(options, options.size);
+    const blob = await rasterizeSvgToPng(svg, options.size, options.size);
     await navigator.clipboard.write([new ClipboardItemCtor({ 'image/png': blob })]);
     return true;
   } catch {

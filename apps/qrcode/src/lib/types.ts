@@ -15,7 +15,7 @@ export type ModuleShape =
 
 export type EyeShape = 'square' | 'rounded' | 'leaf' | 'circle';
 
-export type FrameShape = 'square' | 'rounded' | 'circle';
+export type FrameShape = 'none' | 'square' | 'rounded' | 'circle';
 
 export interface LogoConfig {
   src: string;

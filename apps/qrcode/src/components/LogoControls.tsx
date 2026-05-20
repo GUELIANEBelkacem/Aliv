@@ -1,12 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Slider, SegmentedControl } from '@aliv/ui';
 import { LogoUpload } from './LogoUpload';
 import { clipLogoToShape } from '../lib/logo-utils';
-import type { LogoConfig } from '../lib/types';
+import {
+  computeLogoSizeBuckets,
+  nearestBucketIndex,
+  type LogoSizeBucket,
+} from '../lib/logo-size';
+import type { ErrorCorrection, LogoConfig } from '../lib/types';
 
 interface LogoControlsProps {
   logo: LogoConfig | undefined;
   onChange: (logo: LogoConfig | undefined) => void;
+  moduleCount: number;
+  /** EC the user has explicitly locked, or undefined if autoBump decides. */
+  userEc?: ErrorCorrection;
+  autoBumpThreshold: number;
 }
 
 const SHAPES = [
@@ -15,9 +24,21 @@ const SHAPES = [
   { value: 'circle' as const, label: 'Circle' },
 ];
 
-export function LogoControls({ logo, onChange }: LogoControlsProps) {
-  // Track the original (unclipped) source separately so re-clipping on shape
-  // change re-runs from the clean image, not from a previously-clipped one.
+// Fallback buckets that work reasonably across QR versions when we don't
+// yet know moduleCount (first render before the engine resolves).
+const FALLBACK_BUCKETS: LogoSizeBucket[] = [
+  { ratio: 0.16, cells: 3 },
+  { ratio: 0.23, cells: 5 },
+  { ratio: 0.30, cells: 7 },
+];
+
+export function LogoControls({
+  logo,
+  onChange,
+  moduleCount,
+  userEc,
+  autoBumpThreshold,
+}: LogoControlsProps) {
   const [original, setOriginal] = useState<string | undefined>(logo?.src);
 
   useEffect(() => {
@@ -31,6 +52,20 @@ export function LogoControls({ logo, onChange }: LogoControlsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logo?.shape, original]);
 
+  const buckets = useMemo<LogoSizeBucket[]>(() => {
+    if (moduleCount <= 0) return FALLBACK_BUCKETS;
+    const computed = computeLogoSizeBuckets({
+      moduleCount,
+      userEc,
+      autoBumpThreshold,
+      range: { min: 0.15, max: 0.35 },
+    });
+    return computed.length > 0 ? computed : FALLBACK_BUCKETS;
+  }, [moduleCount, userEc, autoBumpThreshold]);
+
+  const currentIndex = logo ? nearestBucketIndex(buckets, logo.sizeRatio) : 0;
+  const currentBucket = buckets[currentIndex];
+
   function setSrc(src: string | undefined) {
     if (!src) {
       setOriginal(undefined);
@@ -38,13 +73,27 @@ export function LogoControls({ logo, onChange }: LogoControlsProps) {
       return;
     }
     setOriginal(src);
+    const defaultBucket = buckets[Math.min(1, buckets.length - 1)] ?? FALLBACK_BUCKETS[1];
     onChange({
       src,
-      sizeRatio: logo?.sizeRatio ?? 0.25,
+      sizeRatio: logo?.sizeRatio ?? defaultBucket.ratio,
       padding: logo?.padding ?? 6,
       shape: logo?.shape ?? 'square',
     });
   }
+
+  // If the live moduleCount/EC make the user's current sizeRatio land on a
+  // bucket boundary that no longer exists, snap it to the nearest one. This
+  // happens when content changes (new QR version) — we keep the slider in
+  // sync with reality so dragging it always produces visible change.
+  useEffect(() => {
+    if (!logo || buckets.length === 0) return;
+    const target = buckets[currentIndex];
+    if (target && Math.abs(target.ratio - logo.sizeRatio) > 0.005) {
+      onChange({ ...logo, sizeRatio: target.ratio });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buckets]);
 
   return (
     <>
@@ -53,12 +102,19 @@ export function LogoControls({ logo, onChange }: LogoControlsProps) {
         <>
           <Slider
             label="Size"
-            value={logo.sizeRatio}
-            min={0.15}
-            max={0.35}
-            step={0.01}
-            onChange={(v) => onChange({ ...logo, sizeRatio: v })}
-            format={(v) => `${Math.round(v * 100)}%`}
+            value={currentIndex}
+            min={0}
+            max={Math.max(0, buckets.length - 1)}
+            step={1}
+            onChange={(idx) => {
+              const next = buckets[Math.min(Math.max(0, Math.round(idx)), buckets.length - 1)];
+              if (next) onChange({ ...logo, sizeRatio: next.ratio });
+            }}
+            format={() => {
+              const b = currentBucket ?? buckets[0];
+              if (!b) return '—';
+              return `${Math.round(b.ratio * 100)}% · ${b.cells}-cell`;
+            }}
           />
           <Slider
             label="Padding"

@@ -4,12 +4,13 @@ import { DEFAULT_QR_OPTIONS } from '../lib/types';
 export interface Preset {
   id: string;
   name: string;
-  options: Omit<QrOptions, 'data' | 'logo'>;
+  // Presets carry the visual subset of QR options. `size` lives outside so a
+  // future size control isn't snapped back on preset apply (REVIEW §3.5).
+  options: Omit<QrOptions, 'data' | 'logo' | 'size'>;
 }
 
-const base = (overrides: Partial<QrOptions>): Preset['options'] => ({
+const base = (overrides: Partial<Preset['options']>): Preset['options'] => ({
   errorCorrection: 'M',
-  size: 280,
   margin: 12,
   foreground: { type: 'solid', color: '#0c0d12' },
   background: { type: 'solid', color: '#ffffff' },
@@ -81,9 +82,12 @@ export const PRESETS: Preset[] = [
 ];
 
 export function applyPreset(current: QrOptions, preset: Preset): QrOptions {
+  // Always clear stale eyeColor so a previously-set custom eye doesn't bleed
+  // through onto a new theme (REVIEW §8.8).
   return {
     ...current,
     ...preset.options,
+    eyeColor: undefined,
   };
 }
 

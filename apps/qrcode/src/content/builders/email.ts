@@ -5,9 +5,12 @@ export function buildEmail(to: string, subject?: string, body?: string): BuildRe
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
     return { ok: false, error: 'Invalid email address.' };
   }
-  const params = new URLSearchParams();
-  if (subject) params.set('subject', subject);
-  if (body) params.set('body', body);
-  const query = params.toString();
+  // Build the query manually with encodeURIComponent so spaces become %20.
+  // URLSearchParams uses + for spaces, which some Mail apps take literally
+  // (RFC 6068 requires %20 for mailto). REVIEW §1.5.
+  const parts: string[] = [];
+  if (subject) parts.push(`subject=${encodeURIComponent(subject)}`);
+  if (body) parts.push(`body=${encodeURIComponent(body)}`);
+  const query = parts.join('&');
   return { ok: true, value: `mailto:${to}${query ? `?${query}` : ''}` };
 }

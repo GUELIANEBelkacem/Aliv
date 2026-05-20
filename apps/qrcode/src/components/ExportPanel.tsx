@@ -1,65 +1,60 @@
 import { useState } from 'react';
 import { Button, SegmentedControl } from '@aliv/ui';
-import type QRCodeStyling from 'qr-code-styling';
-import { downloadPng, downloadSvg, copyPngToClipboard, defaultFilename } from '../lib/export';
+import { exportPng, exportSvg, copyPngFromOptions, defaultFilename } from '../lib/export';
+import type { QrOptions } from '../lib/types';
 
 const RESOLUTIONS = ['256', '512', '1024', '2048'] as const;
 type Resolution = typeof RESOLUTIONS[number];
 
 interface ExportPanelProps {
-  qrRef: React.MutableRefObject<QRCodeStyling | null>;
-  filenameSeed: string;
+  options: QrOptions;
 }
 
-export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
+export function ExportPanel({ options }: ExportPanelProps) {
   const [resolution, setResolution] = useState<Resolution>('1024');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function withQr<T>(fn: (qr: QRCodeStyling) => Promise<T>): Promise<T | undefined> {
-    if (!qrRef.current) {
-      setError('QR not ready yet — try again in a moment.');
-      return;
-    }
-    try {
-      return await fn(qrRef.current);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Export failed.');
-      return;
-    }
-  }
-
   function getFilename() {
-    return defaultFilename(filenameSeed);
+    return defaultFilename(options.data);
   }
 
   async function handlePng() {
     setError(null);
-    if (!qrRef.current) return;
-    const px = Number(resolution);
-    qrRef.current.update({ width: px, height: px });
-    await withQr((qr) => downloadPng(qr, getFilename()));
+    try {
+      await exportPng(options, Number(resolution), getFilename());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Export failed.');
+    }
   }
 
   async function handleSvg() {
     setError(null);
-    await withQr((qr) => downloadSvg(qr, getFilename()));
+    try {
+      await exportSvg(options, getFilename());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Export failed.');
+    }
   }
 
   async function handleCopy() {
     setError(null);
-    const ok = await withQr((qr) => copyPngToClipboard(qr));
-    if (ok) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } else {
-      setError('Clipboard not available in this browser.');
+    try {
+      const ok = await copyPngFromOptions(options);
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      } else {
+        setError('Clipboard not available in this browser.');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Copy failed.');
     }
   }
 
   return (
     <>
-      <div className="qr-field">
+      <div className="qr-field" data-testid="qr-export-resolution">
         <label>Resolution</label>
         <SegmentedControl<Resolution>
           value={resolution}
@@ -74,7 +69,15 @@ export function ExportPanel({ qrRef, filenameSeed }: ExportPanelProps) {
         <Button variant="secondary" onClick={handleSvg}>Download SVG</Button>
         <Button variant="ghost" onClick={handleCopy}>{copied ? '✓ Copied' : 'Copy PNG'}</Button>
       </div>
-      {error && <span className="qr-field-hint" style={{ color: 'var(--danger)' }}>{error}</span>}
+      {(error || copied) && (
+        <span
+          className="qr-field-hint"
+          data-testid="qr-export-feedback"
+          style={error ? { color: 'var(--danger)' } : undefined}
+        >
+          {error ?? 'Copied!'}
+        </span>
+      )}
     </>
   );
 }

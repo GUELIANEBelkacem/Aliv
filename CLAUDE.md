@@ -107,19 +107,19 @@ The plan that drove these is `PLATFORM_BUILD_PLAN.md`.
 
 | Workspace | Unit tests |
 |---|---|
-| @aliv/ui | 50 |
+| @aliv/ui | 55 |
 | @aliv/json-xml | 201 |
 | @aliv/web | 7 |
-| @aliv/qrcode | 124 |
-| **Total unit** | **382** |
-| @aliv/e2e (Playwright) | 25 specs |
+| @aliv/qrcode | 140 |
+| **Total unit** | **403** |
+| @aliv/e2e (Playwright) | 91 specs (76 active, 15 skipped) |
 
 ## Performance budgets (current)
 
 | App | JS gzipped | LCP target |
 |---|---|---|
 | json-xml | 224 KB (CodeMirror dominates — known) | < 2.5s |
-| qrcode | 86 KB | < 2.5s |
+| qrcode | 94 KB | < 2.5s |
 | web | 64 KB | < 2.5s |
 
 The json-xml gzipped JS overshoots the 200 KB budget; mitigation is

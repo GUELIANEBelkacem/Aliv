@@ -10,7 +10,7 @@ export type ContentData =
   | { type: 'email'; to: string; subject?: string; body?: string }
   | { type: 'sms'; phone: string; body?: string }
   | { type: 'phone'; phone: string }
-  | { type: 'geo'; lat: number; lon: number; label?: string }
+  | { type: 'geo'; lat: number | undefined; lon: number | undefined; label?: string }
   | { type: 'calendar'; title: string; description?: string; location?: string; start: string; end: string };
 
 export interface BuildResult {

@@ -131,10 +131,11 @@ describe('buildEmail', () => {
     expect(buildEmail('a@b.com').value).toBe('mailto:a@b.com');
   });
 
-  it('appends URL-encoded subject and body', () => {
+  it('encodes spaces as %20 (RFC 6068, not URLSearchParams + form-encoding)', () => {
     const r = buildEmail('a@b.com', 'Hi there', 'Body w/ space');
-    expect(r.value).toContain('subject=Hi+there');
-    expect(r.value).toContain('body=Body+w%2F+space');
+    expect(r.value).toContain('subject=Hi%20there');
+    expect(r.value).toContain('body=Body%20w%2F%20space');
+    expect(r.value).not.toMatch(/[+]/);
   });
 
   it('rejects missing recipient', () => {

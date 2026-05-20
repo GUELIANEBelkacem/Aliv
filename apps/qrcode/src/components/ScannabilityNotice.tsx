@@ -8,7 +8,12 @@ interface ScannabilityNoticeProps {
 export function ScannabilityNotice({ result }: ScannabilityNoticeProps) {
   if (result.level === 'ok') return null;
   return (
-    <div data-testid="scannability" data-severity={result.level}>
+    <div
+      data-testid="qr-scannability-notice"
+      data-severity={result.level}
+      role="status"
+      aria-live="polite"
+    >
       <Banner severity={result.level === 'fail' ? 'fail' : 'warn'}>
         {result.messages[0]}
       </Banner>
