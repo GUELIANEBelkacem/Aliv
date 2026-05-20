@@ -3,22 +3,38 @@ import { render, fireEvent } from '@testing-library/react';
 import { ContentTabs } from '../content/ContentTabs';
 
 describe('ContentTabs', () => {
-  it('renders all 9 content type tabs', () => {
-    const { container } = render(<ContentTabs value="text" onChange={() => {}} />);
-    expect(container.querySelectorAll('[data-segment-value]').length).toBe(9);
+  it('renders a trigger showing the current type', () => {
+    const { getByRole } = render(<ContentTabs value="wifi" onChange={() => {}} />);
+    const trigger = getByRole('button', { name: /content type/i });
+    expect(trigger).toBeTruthy();
+    expect(trigger.textContent).toMatch(/Wi-Fi/);
   });
 
-  it('marks the current tab as selected', () => {
-    const { container } = render(<ContentTabs value="wifi" onChange={() => {}} />);
-    const wifi = container.querySelector('[data-segment-value="wifi"]')!;
-    expect(wifi.getAttribute('data-active')).toBe('true');
-    expect(wifi.getAttribute('aria-checked')).toBe('true');
+  it('opens the popover when the trigger is clicked', () => {
+    const { container, getByRole } = render(<ContentTabs value="text" onChange={() => {}} />);
+    fireEvent.click(getByRole('button', { name: /content type/i }));
+    expect(container.querySelectorAll('[data-content-type]').length).toBe(9);
   });
 
-  it('emits onChange when a different tab is clicked', () => {
+  it('marks the current option as selected when the popover is open', () => {
+    const { container, getByRole } = render(<ContentTabs value="wifi" onChange={() => {}} />);
+    fireEvent.click(getByRole('button', { name: /content type/i }));
+    const wifi = container.querySelector('[data-content-type="wifi"]')!;
+    expect(wifi.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('emits onChange when a different option is clicked', () => {
     const onChange = vi.fn();
-    const { container } = render(<ContentTabs value="text" onChange={onChange} />);
-    fireEvent.click(container.querySelector('[data-segment-value="vcard"]')!);
+    const { container, getByRole } = render(<ContentTabs value="text" onChange={onChange} />);
+    fireEvent.click(getByRole('button', { name: /content type/i }));
+    fireEvent.click(container.querySelector('[data-content-type="vcard"]')!);
     expect(onChange).toHaveBeenCalledWith('vcard');
+  });
+
+  it('closes the popover after a selection', () => {
+    const { container, getByRole } = render(<ContentTabs value="text" onChange={() => {}} />);
+    fireEvent.click(getByRole('button', { name: /content type/i }));
+    fireEvent.click(container.querySelector('[data-content-type="vcard"]')!);
+    expect(container.querySelectorAll('[data-content-type]').length).toBe(0);
   });
 });

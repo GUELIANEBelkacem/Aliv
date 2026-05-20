@@ -46,8 +46,15 @@ export class QrcodePage {
   contentTab(id: ContentTypeId): Locator {
     return this.page.locator(`[data-content-type="${id}"]`);
   }
+  contentTypeTrigger(): Locator {
+    return this.page.getByTestId('qr-content-type-trigger');
+  }
   async setContentType(id: ContentTypeId): Promise<void> {
-    await this.contentTab(id).click();
+    const tab = this.contentTab(id);
+    if (!(await tab.isVisible().catch(() => false))) {
+      await this.contentTypeTrigger().click();
+    }
+    await tab.click();
   }
   contentForm(): Locator { return this.page.getByTestId('qr-content-form'); }
 
