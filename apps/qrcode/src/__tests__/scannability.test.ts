@@ -61,6 +61,30 @@ describe('assess scannability', () => {
     }).level).toBe('fail');
   });
 
+  it('large padding (>15 %) with EC below H is warn', () => {
+    expect(assess({
+      ...DEFAULT_QR_OPTIONS,
+      margin: 50, // 50/280 ≈ 17.9 %
+      errorCorrection: 'M',
+    }).level).toBe('warn');
+  });
+
+  it('moderate padding (>10 %) with EC=M is warn (recommends Q)', () => {
+    expect(assess({
+      ...DEFAULT_QR_OPTIONS,
+      margin: 30, // 30/280 ≈ 10.7 %
+      errorCorrection: 'M',
+    }).level).toBe('warn');
+  });
+
+  it('large padding with EC=H is ok', () => {
+    expect(assess({
+      ...DEFAULT_QR_OPTIONS,
+      margin: 50,
+      errorCorrection: 'H',
+    }).level).toBe('ok');
+  });
+
   it('messages are populated for non-ok results', () => {
     const result = assess({
       ...DEFAULT_QR_OPTIONS,

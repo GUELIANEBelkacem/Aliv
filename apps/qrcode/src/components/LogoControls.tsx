@@ -20,6 +20,8 @@ interface LogoControlsProps {
   qrPixelSize: number;
   /** EC the user has explicitly locked, or undefined if autoBump decides. */
   userEc?: ErrorCorrection;
+  /** EC floor implied by the padding when autoBump is allowed (auto mode). */
+  marginEc?: ErrorCorrection;
   autoBumpThreshold: number;
 }
 
@@ -43,6 +45,7 @@ export function LogoControls({
   moduleCount,
   qrPixelSize,
   userEc,
+  marginEc,
   autoBumpThreshold,
 }: LogoControlsProps) {
   const [original, setOriginal] = useState<string | undefined>(logo?.src);
@@ -63,11 +66,12 @@ export function LogoControls({
     const computed = computeLogoSizeBuckets({
       moduleCount,
       userEc,
+      marginEc,
       autoBumpThreshold,
       range: { min: 0.15, max: 0.35 },
     });
     return computed.length > 0 ? computed : FALLBACK_BUCKETS;
-  }, [moduleCount, userEc, autoBumpThreshold]);
+  }, [moduleCount, userEc, marginEc, autoBumpThreshold]);
 
   const items = useMemo(() => labeledBuckets(buckets), [buckets]);
   // Clamp the active label to the available bucket count — e.g. user picked XL

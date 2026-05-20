@@ -9,12 +9,19 @@ import { PaddingControl } from './components/PaddingControl';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
-import { LogoEcWarning } from './components/LogoEcWarning';
+import { EcAutoBumpBanner, type AutoBumpReason } from './components/EcAutoBumpBanner';
 import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { SectionRail, type RailItem } from './components/SectionRail';
 import { assess } from './lib/scannability';
 import { frameLayout } from './lib/frame-shapes';
+import {
+  EC_RANK,
+  LOGO_BUMP_H_THRESHOLD,
+  MARGIN_BUMP_Q_THRESHOLD,
+  recommendedEc,
+  recommendedEcFromMargin,
+} from './lib/ec-rules';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
@@ -26,9 +33,9 @@ import { buildContent } from './content/builders';
 import type { ContentData, ContentType } from './content/types';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
 
-// Single source of truth for "logo is big enough to need extra EC".
-// scannability.ts uses the same constant — see REVIEW §3.4.
-export const LARGE_LOGO_THRESHOLD = 0.2;
+// Backwards-compat re-export — historical name kept for tests that import it.
+// New code should read LOGO_BUMP_H_THRESHOLD from lib/ec-rules.
+export const LARGE_LOGO_THRESHOLD = LOGO_BUMP_H_THRESHOLD;
 
 const SHORTCUTS_LIST = [
   { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
@@ -92,25 +99,30 @@ export default function App() {
     setContentMap((prev) => ({ ...prev, [next.type]: next }));
   }
 
-  const bigLogo = !!(options.logo && options.logo.sizeRatio > LARGE_LOGO_THRESHOLD);
-  const autoBump = bigLogo && !userTouchedEc && options.errorCorrection !== 'H';
+  // In auto mode the EC is derived from logo size and padding together
+  // (lib/ec-rules.recommendedEc). userTouchedEc=true switches to manual.
+  const recommended = recommendedEc(options);
+  const autoBumped = !userTouchedEc && EC_RANK[recommended] > EC_RANK[options.errorCorrection];
 
-  // The autoBump banner is computed from sizeRatio, which the user can drag
-  // across the threshold many times in a single gesture. We defer the
-  // banner's *visibility* until autoBump has been stable for 250 ms so it
-  // doesn't flicker mid-drag — the actual EC adapts live, only the notice
-  // settles after the user lifts their finger.
-  const [autoBumpVisible, setAutoBumpVisible] = useState(autoBump);
+  // Why did auto-EC fire? (logo / padding / both — drives the banner copy.)
+  const bigLogo = !!(options.logo && options.logo.sizeRatio > LOGO_BUMP_H_THRESHOLD);
+  const bigMargin = options.margin / options.size > MARGIN_BUMP_Q_THRESHOLD;
+  const autoBumpReason: AutoBumpReason = bigLogo && bigMargin ? 'both' : bigLogo ? 'logo' : 'padding';
+
+  // The banner can flicker mid-drag (padding slider crosses a threshold
+  // repeatedly). Defer visibility until the bump has been stable for 250 ms —
+  // the EC itself adapts live, only the notice settles after the gesture.
+  const [autoBumpVisible, setAutoBumpVisible] = useState(autoBumped);
   useEffect(() => {
-    const t = setTimeout(() => setAutoBumpVisible(autoBump), 250);
+    const t = setTimeout(() => setAutoBumpVisible(autoBumped), 250);
     return () => clearTimeout(t);
-  }, [autoBump]);
+  }, [autoBumped]);
 
   const effectiveOptions = useMemo<QrOptions>(() => ({
     ...options,
     data: built.ok ? (built.value ?? '') : ' ',
-    errorCorrection: autoBump ? 'H' : options.errorCorrection,
-  }), [options, built.ok, built.value, autoBump]);
+    errorCorrection: userTouchedEc ? options.errorCorrection : recommended,
+  }), [options, built.ok, built.value, userTouchedEc, recommended]);
 
   // The frame layout decides the *inscribed* pixel size of the QR engine
   // (smaller than options.size when the frame is a circle). LogoControls needs
@@ -205,7 +217,11 @@ export default function App() {
         <div className="qr-panel-stage">
           {(autoBumpVisible || scannability.level !== 'ok') && (
             <div className="qr-notices">
-              <LogoEcWarning show={autoBumpVisible} />
+              <EcAutoBumpBanner
+                show={autoBumpVisible}
+                recommended={recommended}
+                reason={autoBumpReason}
+              />
               <ScannabilityNotice result={scannability} />
             </div>
           )}
@@ -262,7 +278,8 @@ export default function App() {
                 moduleCount={moduleCount}
                 qrPixelSize={layout.qr.size}
                 userEc={userTouchedEc ? options.errorCorrection : undefined}
-                autoBumpThreshold={LARGE_LOGO_THRESHOLD}
+                marginEc={userTouchedEc ? undefined : recommendedEcFromMargin(options)}
+                autoBumpThreshold={LOGO_BUMP_H_THRESHOLD}
               />
             </Panel>
           )}

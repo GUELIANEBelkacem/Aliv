@@ -1,5 +1,6 @@
 import type { ErrorCorrection, LogoSizeLabel, QrOptions } from './types';
 import { LOGO_SIZE_LABELS } from './types';
+import { EC_RANK } from './ec-rules';
 
 /**
  * qr-code-styling renders an embedded logo at `oX * dotSize` where
@@ -38,8 +39,14 @@ export interface LogoSizeBucket {
 
 interface ComputeOpts {
   moduleCount: number;
-  /** EC level the user has fixed, or undefined if autoBump is allowed. */
+  /** EC level the user has fixed in advanced mode, or undefined to auto. */
   userEc?: ErrorCorrection;
+  /**
+   * EC floor implied by the padding (quiet zone). Only consulted when `userEc`
+   * is undefined — i.e. in auto mode. Lets bucket math reflect a Q/H bump
+   * coming from the margin alone.
+   */
+  marginEc?: ErrorCorrection;
   /** Threshold above which the app autoBumps EC to H. */
   autoBumpThreshold: number;
   range: { min: number; max: number };
@@ -47,19 +54,26 @@ interface ComputeOpts {
   samples?: number;
 }
 
+function maxEc(a: ErrorCorrection, b: ErrorCorrection): ErrorCorrection {
+  return EC_RANK[a] >= EC_RANK[b] ? a : b;
+}
+
 /**
  * Walk the slider range and group consecutive ratios that render at the
  * same cell count. Return one representative ratio per distinct bucket.
  */
 export function computeLogoSizeBuckets(opts: ComputeOpts): LogoSizeBucket[] {
-  const { moduleCount, userEc, autoBumpThreshold, range, samples = 200 } = opts;
+  const { moduleCount, userEc, marginEc, autoBumpThreshold, range, samples = 200 } = opts;
   if (moduleCount <= 0) return [];
 
   // Map each sample to its rendered cell count, accounting for autoBump.
+  // When userEc is set the user is in advanced mode and the EC is locked.
+  // Otherwise the effective EC per sample = max(marginEc floor, ratio-bump).
   const samplesByRatio: { ratio: number; cells: number }[] = [];
   for (let i = 0; i <= samples; i++) {
     const ratio = range.min + (i / samples) * (range.max - range.min);
-    const ec = userEc ?? (ratio > autoBumpThreshold ? 'H' : 'M');
+    const ratioBump: ErrorCorrection = ratio > autoBumpThreshold ? 'H' : 'M';
+    const ec = userEc ?? maxEc(marginEc ?? 'M', ratioBump);
     const cells = cellsForRatio(ratio, ec, moduleCount);
     if (cells > 0) samplesByRatio.push({ ratio, cells });
   }

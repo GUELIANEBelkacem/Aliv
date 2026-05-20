@@ -42,5 +42,16 @@ export function assess(opts: QrOptions): ScannabilityResult {
     messages.push(`Logo covers >20% of the QR but error correction is ${opts.errorCorrection}. Use H for safety.`);
   }
 
+  // Padding (margin) above ~15% of canvas size also benefits from H — modules
+  // shrink relative to canvas and scanners need the redundancy to compensate.
+  const marginRatio = opts.margin / opts.size;
+  if (marginRatio > 0.15 && opts.errorCorrection !== 'H') {
+    bump('warn');
+    messages.push(`Padding is >15% of the canvas; only EC=H scans reliably at this margin (currently ${opts.errorCorrection}).`);
+  } else if (marginRatio > 0.10 && (opts.errorCorrection === 'L' || opts.errorCorrection === 'M')) {
+    bump('warn');
+    messages.push(`Padding is >10% of the canvas; EC=Q or higher recommended (currently ${opts.errorCorrection}).`);
+  }
+
   return { level, messages };
 }
