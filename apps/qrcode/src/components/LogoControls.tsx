@@ -7,12 +7,15 @@ import {
   nearestBucketIndex,
   type LogoSizeBucket,
 } from '../lib/logo-size';
+import { safeMaxPadding } from '../lib/ec-rules';
 import type { ErrorCorrection, LogoConfig } from '../lib/types';
 
 interface LogoControlsProps {
   logo: LogoConfig | undefined;
   onChange: (logo: LogoConfig | undefined) => void;
   moduleCount: number;
+  /** Inscribed QR pixel size from the frame layout — drives dotSize. */
+  qrPixelSize: number;
   /** EC the user has explicitly locked, or undefined if autoBump decides. */
   userEc?: ErrorCorrection;
   autoBumpThreshold: number;
@@ -36,6 +39,7 @@ export function LogoControls({
   logo,
   onChange,
   moduleCount,
+  qrPixelSize,
   userEc,
   autoBumpThreshold,
 }: LogoControlsProps) {
@@ -65,6 +69,23 @@ export function LogoControls({
 
   const currentIndex = logo ? nearestBucketIndex(buckets, logo.sizeRatio) : 0;
   const currentBucket = buckets[currentIndex];
+
+  // Cap padding so the rendered logo image is always at least
+  // MIN_EMBEDDED_LOGO_PX wide; past that qr-code-styling produces a
+  // zero/negative-width <image> that slips to the corner of the stage.
+  const dotSize = moduleCount > 0 ? qrPixelSize / moduleCount : 0;
+  const cells = currentBucket?.cells ?? 0;
+  const maxPadding = safeMaxPadding({ cells, dotSize });
+
+  // Clamp any previously-stored padding that no longer fits (e.g. user
+  // switched to circle frame which shrank the inscribed QR).
+  useEffect(() => {
+    if (!logo) return;
+    if (logo.padding > maxPadding) {
+      onChange({ ...logo, padding: maxPadding });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxPadding]);
 
   function setSrc(src: string | undefined) {
     if (!src) {
@@ -118,11 +139,11 @@ export function LogoControls({
           />
           <Slider
             label="Padding"
-            value={logo.padding}
+            value={Math.min(logo.padding, maxPadding)}
             min={0}
-            max={16}
+            max={Math.max(1, maxPadding)}
             step={1}
-            onChange={(v) => onChange({ ...logo, padding: v })}
+            onChange={(v) => onChange({ ...logo, padding: Math.min(v, maxPadding) })}
             format={(v) => `${v} px`}
           />
           <div className="qr-field">

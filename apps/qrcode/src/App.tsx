@@ -14,6 +14,7 @@ import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { SectionRail, type RailItem } from './components/SectionRail';
 import { assess } from './lib/scannability';
+import { frameLayout } from './lib/frame-shapes';
 import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
@@ -110,6 +111,15 @@ export default function App() {
     data: built.ok ? (built.value ?? '') : ' ',
     errorCorrection: autoBump ? 'H' : options.errorCorrection,
   }), [options, built.ok, built.value, autoBump]);
+
+  // The frame layout decides the *inscribed* pixel size of the QR engine
+  // (smaller than options.size when the frame is a circle). LogoControls needs
+  // it to compute the safe-max logo padding, and QrPreview needs it to position
+  // the engine output. Computed once here so both consume the same value.
+  const layout = useMemo(
+    () => frameLayout(effectiveOptions.frameShape, effectiveOptions.size, effectiveOptions.background.color),
+    [effectiveOptions.frameShape, effectiveOptions.size, effectiveOptions.background.color],
+  );
 
   const scannability = assess(effectiveOptions);
   const valid = built.ok;
@@ -246,6 +256,7 @@ export default function App() {
                 logo={options.logo}
                 onChange={(logo) => update({ logo })}
                 moduleCount={moduleCount}
+                qrPixelSize={layout.qr.size}
                 userEc={userTouchedEc ? options.errorCorrection : undefined}
                 autoBumpThreshold={LARGE_LOGO_THRESHOLD}
               />

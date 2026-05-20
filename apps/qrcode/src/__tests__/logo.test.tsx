@@ -68,7 +68,7 @@ describe('LogoUpload', () => {
 
 describe('LogoControls', () => {
   const logo = { src: 'data:image/png;base64,abc', sizeRatio: 0.2, padding: 4, shape: 'square' as const };
-  const baseProps = { moduleCount: 25, autoBumpThreshold: 0.2 };
+  const baseProps = { moduleCount: 25, qrPixelSize: 280, autoBumpThreshold: 0.2 };
 
   it('does not render size/padding/shape when no logo set', () => {
     const { queryByLabelText } = render(
@@ -83,6 +83,19 @@ describe('LogoControls', () => {
     );
     expect(getByLabelText('Size')).toBeInTheDocument();
     expect(getByLabelText('Padding')).toBeInTheDocument();
+  });
+
+  it('clamps padding slider max so the embedded image stays visible', () => {
+    // With a tiny inscribed QR (e.g. circle frame: 194 / 25 ≈ 7.76 dotSize
+    // and the smallest bucket at 3 cells → hole ≈ 23 px) the slider can't
+    // go past ~3 px or the rendered <image> would collapse / mis-position.
+    // Without the clamp this test would let the slider go to 16 px.
+    const small = { ...logo, sizeRatio: 0.16 };
+    const { getByLabelText } = render(
+      <LogoControls logo={small} onChange={() => {}} {...baseProps} qrPixelSize={194} />,
+    );
+    const padding = getByLabelText('Padding') as HTMLInputElement;
+    expect(Number(padding.max)).toBeLessThanOrEqual(6);
   });
 
   it('emits a bucketed sizeRatio when the size slider moves', () => {
