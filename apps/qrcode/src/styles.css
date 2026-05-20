@@ -97,6 +97,7 @@ body {
 
 /* The active panel "stage" — sits between rail and preview */
 .qr-panel-stage {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -650,6 +651,52 @@ body {
 
 .qr-checkbox-label { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
 .qr-checkbox-label input[type="checkbox"] { accent-color: var(--accent); }
+
+/* Transient pill that briefly announces an auto-EC bump. Pinned to the top
+ * of the panel stage; fades in via opacity transition and unmounts after the
+ * lifetime timer set in the React component. Intentionally low-key — accent
+ * tint, not warn tint, because nothing is wrong. */
+.qr-ec-toast {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translate(-50%, -8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--accent-muted);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.78rem;
+  letter-spacing: -0.005em;
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-spring);
+  z-index: 50;
+}
+.qr-ec-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.qr-ec-toast strong {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-weight: 600;
+}
+.qr-ec-toast-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
 
 .qr-advanced-status {
   display: flex;

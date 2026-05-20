@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { Sparkles, Palette, Shapes, ImagePlus, Sliders, Download } from 'lucide-react';
 import { AppShell, type Shortcut } from '@aliv/ui';
 import { copyPngFromOptions } from './lib/export';
@@ -9,7 +9,7 @@ import { PaddingControl } from './components/PaddingControl';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
-import { EcAutoBumpBanner, type AutoBumpReason } from './components/EcAutoBumpBanner';
+import { EcAutoBumpToast } from './components/EcAutoBumpToast';
 import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { SectionRail, type RailItem } from './components/SectionRail';
@@ -18,7 +18,6 @@ import { frameLayout } from './lib/frame-shapes';
 import {
   EC_RANK,
   LOGO_BUMP_H_THRESHOLD,
-  MARGIN_BUMP_Q_THRESHOLD,
   recommendedEc,
   recommendedEcFromMargin,
 } from './lib/ec-rules';
@@ -106,21 +105,28 @@ export default function App() {
   // In auto mode the EC is derived from logo size and padding together
   // (lib/ec-rules.recommendedEc). advancedEc=true switches to manual.
   const recommended = recommendedEc(options);
-  const autoBumped = !advancedEc && EC_RANK[recommended] > EC_RANK[options.errorCorrection];
 
-  // Why did auto-EC fire? (logo / padding / both — drives the banner copy.)
-  const bigLogo = !!(options.logo && options.logo.sizeRatio > LOGO_BUMP_H_THRESHOLD);
-  const bigMargin = options.margin / options.size > MARGIN_BUMP_Q_THRESHOLD;
-  const autoBumpReason: AutoBumpReason = bigLogo && bigMargin ? 'both' : bigLogo ? 'logo' : 'padding';
-
-  // The banner can flicker mid-drag (padding slider crosses a threshold
-  // repeatedly). Defer visibility until the bump has been stable for 250 ms —
-  // the EC itself adapts live, only the notice settles after the gesture.
-  const [autoBumpVisible, setAutoBumpVisible] = useState(autoBumped);
+  // Surface an auto-bump as a transient toast (not a sticky banner — a
+  // persistent warn-tone notice reads as "something is wrong"). The toast
+  // fires on the rising edge of `recommended` while in auto mode. The 250 ms
+  // debounce stops a drag across a threshold from spamming notifications.
+  const lastRecommendedRef = useRef(recommended);
+  const [toastTrigger, setToastTrigger] = useState(0);
+  const [toastLevel, setToastLevel] = useState(recommended);
   useEffect(() => {
-    const t = setTimeout(() => setAutoBumpVisible(autoBumped), 250);
+    if (advancedEc) {
+      lastRecommendedRef.current = recommended;
+      return;
+    }
+    const t = setTimeout(() => {
+      if (EC_RANK[recommended] > EC_RANK[lastRecommendedRef.current]) {
+        setToastLevel(recommended);
+        setToastTrigger((n) => n + 1);
+      }
+      lastRecommendedRef.current = recommended;
+    }, 250);
     return () => clearTimeout(t);
-  }, [autoBumped]);
+  }, [recommended, advancedEc]);
 
   const effectiveOptions = useMemo<QrOptions>(() => ({
     ...options,
@@ -178,7 +184,7 @@ export default function App() {
     { id: 'content', label: 'Content', icon: Sparkles },
     { id: 'colors',  label: 'Colors',  icon: Palette },
     { id: 'shapes',  label: 'Shapes',  icon: Shapes },
-    { id: 'logo',    label: 'Logo',    icon: ImagePlus, badge: autoBumpVisible ? 'warn' : undefined },
+    { id: 'logo',    label: 'Logo',    icon: ImagePlus },
     {
       id: 'advanced',
       label: 'Advanced',
@@ -219,16 +225,12 @@ export default function App() {
         <SectionRail items={railItems} active={activeSection} onChange={setActiveSection} />
 
         <div className="qr-panel-stage">
-          {(autoBumpVisible || scannability.level !== 'ok') && (
+          {scannability.level !== 'ok' && (
             <div className="qr-notices">
-              <EcAutoBumpBanner
-                show={autoBumpVisible}
-                recommended={recommended}
-                reason={autoBumpReason}
-              />
               <ScannabilityNotice result={scannability} />
             </div>
           )}
+          <EcAutoBumpToast trigger={toastTrigger} level={toastLevel} />
 
           {activeSection === 'content' && (
             <Panel icon={Sparkles} title="Content" hint={CONTENT_TYPE_LABELS[contentType]}>
