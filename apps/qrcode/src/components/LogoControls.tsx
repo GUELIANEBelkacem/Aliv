@@ -4,13 +4,13 @@ import { LogoUpload } from './LogoUpload';
 import { clipLogoToShape } from '../lib/logo-utils';
 import {
   computeLogoSizeBuckets,
-  labeledBuckets,
   labelToRatio,
   nearestBucketIndex,
   type LogoSizeBucket,
 } from '../lib/logo-size';
 import { safeMaxPadding } from '../lib/ec-rules';
 import type { ErrorCorrection, LogoConfig, LogoSizeLabel } from '../lib/types';
+import { LOGO_SIZE_LABELS } from '../lib/types';
 
 interface LogoControlsProps {
   logo: LogoConfig | undefined;
@@ -68,13 +68,11 @@ export function LogoControls({
     return computed.length > 0 ? computed : FALLBACK_BUCKETS;
   }, [moduleCount, ec]);
 
-  const items = useMemo(() => labeledBuckets(buckets), [buckets]);
-  // Clamp the active label to the available bucket count — e.g. user picked XL
-  // but the new QR + EC combination only yields 3 distinct cell counts → fall
-  // back to L without losing their intent.
-  const activeLabel: LogoSizeLabel | undefined = logo
-    ? (items.find((b) => b.label === logo.size)?.label ?? items[items.length - 1]?.label)
-    : undefined;
+  // Always render the full 4-label picker (S/M/L/XL). Picking a label whose
+  // EC differs from the current effective EC is part of the auto-EC flow:
+  // setting the label triggers a recommendedEc bump, the engine re-renders,
+  // and the sync effect snaps sizeRatio to the new bucket on the next render.
+  const activeLabel: LogoSizeLabel = logo?.size ?? 'M';
   const currentIndex = logo ? nearestBucketIndex(buckets, logo.sizeRatio) : 0;
   const currentBucket = buckets[currentIndex];
 
@@ -112,18 +110,14 @@ export function LogoControls({
     });
   }
 
-  // Keep options.logo.sizeRatio in sync with options.logo.size. When buckets
-  // change (content edit → new module count, or EC change), the label-to-ratio
-  // mapping shifts; we rewrite sizeRatio so the engine renders what the user
-  // picked. Idempotent — does nothing if already aligned.
+  // Keep logo.sizeRatio in sync with the current label. When buckets change
+  // — content edit, EC bump from a label switch — re-snap the ratio. Never
+  // touches the LABEL; that's the user's intent and is the input, not output.
   useEffect(() => {
-    if (!logo || items.length === 0) return;
-    const targetRatio = labelToRatio(activeLabel ?? 'M', buckets);
+    if (!logo || buckets.length === 0) return;
+    const targetRatio = labelToRatio(activeLabel, buckets);
     if (targetRatio !== undefined && Math.abs(targetRatio - logo.sizeRatio) > 0.005) {
-      onChange({ ...logo, size: activeLabel ?? 'M', sizeRatio: targetRatio });
-    } else if (activeLabel && activeLabel !== logo.size) {
-      // Label drifted (e.g. XL → L because bucket count shrank). Keep ratio.
-      onChange({ ...logo, size: activeLabel });
+      onChange({ ...logo, sizeRatio: targetRatio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buckets, activeLabel]);
@@ -131,16 +125,26 @@ export function LogoControls({
   return (
     <>
       <LogoUpload src={logo?.src} onChange={setSrc} />
-      {logo && items.length > 0 && (
+      {logo && (
         <>
           <div className="qr-field">
             <label>Size</label>
             <SegmentedControl<LogoSizeLabel>
-              value={activeLabel ?? items[0].label}
-              options={items.map(({ label }) => ({ value: label, label }))}
+              value={activeLabel}
+              options={LOGO_SIZE_LABELS.map((label) => ({ value: label, label }))}
               onChange={(label) => {
-                const target = items.find((b) => b.label === label)?.bucket;
-                if (target) onChange({ ...logo, size: label, sizeRatio: target.ratio });
+                // Snap to the best available bucket for this label *right now*.
+                // If the chosen label lives at a different EC than the current
+                // one (e.g. picking L while at EC=M), the EC bump triggered by
+                // recommendedEcFromLogo will rebuild the buckets on the next
+                // render and the sync effect will snap to the right ratio.
+                const idx = Math.min(LOGO_SIZE_LABELS.indexOf(label), buckets.length - 1);
+                const bucket = buckets[idx];
+                onChange({
+                  ...logo,
+                  size: label,
+                  sizeRatio: bucket?.ratio ?? logo.sizeRatio,
+                });
               }}
               ariaLabel="Logo size"
               full
@@ -149,7 +153,6 @@ export function LogoControls({
               {currentBucket
                 ? `≈ ${Math.round(currentBucket.ratio * 100)}% · ${currentBucket.cells}-cell`
                 : 'No size available at this EC'}
-              {items.length < 4 && ' · more sizes at higher error correction'}
             </span>
           </div>
           <Slider

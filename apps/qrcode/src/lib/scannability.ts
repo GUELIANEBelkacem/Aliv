@@ -1,5 +1,6 @@
 import type { QrOptions } from './types';
 import { contrastRatio, averageColor } from './color-utils';
+import { isManualEcUnsafe, recommendedEc } from './ec-rules';
 
 export type Severity = 'ok' | 'warn' | 'fail';
 
@@ -35,22 +36,15 @@ export function assess(opts: QrOptions): ScannabilityResult {
     }
   }
 
-  // Unified threshold with App.tsx's LARGE_LOGO_THRESHOLD (REVIEW §3.4). The
-  // qr-code-styling rule of thumb is that a logo > 20% of QR area needs H.
-  if (opts.logo && opts.logo.sizeRatio > 0.2 && opts.errorCorrection !== 'H') {
+  // Catches "user is in advanced and picked an EC below what the
+  // configuration actually needs". In auto mode this never fires because
+  // effective EC = recommendedEc by construction. The old sizeRatio > 0.20
+  // rule was unstable — it fired on the M label's snapped ratio at EC=M and
+  // wasn't really a coverage measure.
+  if (isManualEcUnsafe(opts)) {
+    const rec = recommendedEc(opts);
     bump('warn');
-    messages.push(`Logo covers >20% of the QR but error correction is ${opts.errorCorrection}. Use H for safety.`);
-  }
-
-  // Padding (margin) above ~15% of canvas size also benefits from H — modules
-  // shrink relative to canvas and scanners need the redundancy to compensate.
-  const marginRatio = opts.margin / opts.size;
-  if (marginRatio > 0.15 && opts.errorCorrection !== 'H') {
-    bump('warn');
-    messages.push(`Padding is >15% of the canvas; only EC=H scans reliably at this margin (currently ${opts.errorCorrection}).`);
-  } else if (marginRatio > 0.10 && (opts.errorCorrection === 'L' || opts.errorCorrection === 'M')) {
-    bump('warn');
-    messages.push(`Padding is >10% of the canvas; EC=Q or higher recommended (currently ${opts.errorCorrection}).`);
+    messages.push(`Error correction is ${opts.errorCorrection} but this configuration needs ${rec} for reliable scans.`);
   }
 
   return { level, messages };

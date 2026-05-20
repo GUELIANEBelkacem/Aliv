@@ -21,11 +21,13 @@ export function recommendedEcFromMargin(opts: QrOptions): ErrorCorrection {
 }
 
 function recommendedEcFromLogo(opts: QrOptions): ErrorCorrection {
-  // Any logo at all carves out modules from the QR; H is the only safe
-  // baseline regardless of size label. Reading the label or the snapped ratio
-  // both introduced feedback loops with the bucket math (REFRESH_PLAN §B) and
-  // misleading scannability warnings. The simple rule eliminates both.
-  return opts.logo ? 'H' : 'M';
+  // Label-based, NOT ratio-based — reading the snapped ratio re-introduced a
+  // feedback loop with the bucket math (REFRESH_PLAN §B). Labels are stable
+  // across engine re-renders so the system converges on one EC per choice.
+  //   S, M: small logos sit comfortably inside EC=M's 15 % damage budget.
+  //   L, XL: large logos need EC=H's 30 % budget for reliable scans.
+  if (!opts.logo) return 'M';
+  return opts.logo.size === 'L' || opts.logo.size === 'XL' ? 'H' : 'M';
 }
 
 // Picks the EC level the app would apply if the user were not overriding it

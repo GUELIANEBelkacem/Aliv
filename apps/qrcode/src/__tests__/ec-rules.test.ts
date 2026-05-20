@@ -42,12 +42,12 @@ describe('recommendedEc', () => {
     expect(recommendedEc(opts())).toBe('M');
   });
 
-  it('any logo bumps EC to H regardless of size label', () => {
-    // The auto-EC rule is "logo present → H" because every logo carves out
-    // modules from the QR. Reading the size label or the snapped ratio
-    // re-introduces a feedback loop with the bucket math (REFRESH_PLAN §B).
-    expect(recommendedEc(opts({ logo: logo('S', 0.16) }))).toBe('H');
-    expect(recommendedEc(opts({ logo: logo('M', 0.20) }))).toBe('H');
+  it('label drives auto-EC: S/M → M, L/XL → H', () => {
+    // Label-based, not ratio-based — the label is the user's intent and is
+    // stable across engine re-renders. S/M sit inside EC=M's budget; L/XL
+    // need EC=H.
+    expect(recommendedEc(opts({ logo: logo('S', 0.16) }))).toBe('M');
+    expect(recommendedEc(opts({ logo: logo('M', 0.20) }))).toBe('M');
     expect(recommendedEc(opts({ logo: logo('L', 0.30) }))).toBe('H');
     expect(recommendedEc(opts({ logo: logo('XL', 0.35) }))).toBe('H');
   });
@@ -56,8 +56,13 @@ describe('recommendedEc', () => {
     expect(recommendedEc(opts({ margin: 50 }))).toBe('H'); // 50/280 ≈ 17.9 %
   });
 
-  it('logo H wins over margin Q', () => {
-    expect(recommendedEc(opts({ margin: 30, logo: logo('S') }))).toBe('H');
+  it('margin Q wins over S logo', () => {
+    // S logo asks for M; margin > 10% asks for Q. max() picks Q.
+    expect(recommendedEc(opts({ margin: 30, logo: logo('S') }))).toBe('Q');
+  });
+
+  it('L logo wins over margin Q', () => {
+    expect(recommendedEc(opts({ margin: 30, logo: logo('L') }))).toBe('H');
   });
 });
 
