@@ -6,14 +6,14 @@ import {
   safeMaxPadding,
   EC_RANK,
 } from '../lib/ec-rules';
-import { DEFAULT_QR_OPTIONS, type QrOptions, type LogoConfig } from '../lib/types';
+import { DEFAULT_QR_OPTIONS, type QrOptions, type LogoConfig, type LogoSizeLabel } from '../lib/types';
 
 function opts(overrides: Partial<QrOptions> = {}): QrOptions {
   return { ...DEFAULT_QR_OPTIONS, ...overrides };
 }
 
-function logo(ratio: number): LogoConfig {
-  return { src: 'data:image/png;base64,xxx', size: 'M', sizeRatio: ratio, padding: 0, shape: 'square' };
+function logo(size: LogoSizeLabel = 'M', ratio = 0.23): LogoConfig {
+  return { src: 'data:image/png;base64,xxx', size, sizeRatio: ratio, padding: 0, shape: 'square' };
 }
 
 describe('recommendedEcFromMargin', () => {
@@ -42,30 +42,35 @@ describe('recommendedEc', () => {
     expect(recommendedEc(opts())).toBe('M');
   });
 
-  it('H when the logo crosses the 20 % bump line', () => {
-    expect(recommendedEc(opts({ logo: logo(0.25) }))).toBe('H');
+  it('S and M logos do not bump (label-based, not ratio-based)', () => {
+    expect(recommendedEc(opts({ logo: logo('S', 0.16) }))).toBe('M');
+    // M with a ratio above 0.20 still does NOT bump — ratio is decoupled
+    // because it's a function of the engine's moduleCount and would cause a
+    // feedback loop with the bucket math.
+    expect(recommendedEc(opts({ logo: logo('M', 0.25) }))).toBe('M');
+  });
+
+  it('L and XL labels bump to H', () => {
+    expect(recommendedEc(opts({ logo: logo('L', 0.22) }))).toBe('H');
+    expect(recommendedEc(opts({ logo: logo('XL', 0.30) }))).toBe('H');
   });
 
   it('H from margin alone even with no logo', () => {
     expect(recommendedEc(opts({ margin: 50 }))).toBe('H'); // 50/280 ≈ 17.9 %
   });
 
-  it('logo H wins over margin Q', () => {
-    expect(recommendedEc(opts({ margin: 30, logo: logo(0.25) }))).toBe('H');
-  });
-
-  it('logo at 0.20 exactly does not bump (strict >)', () => {
-    expect(recommendedEc(opts({ logo: logo(0.20) }))).toBe('M');
+  it('label H wins over margin Q', () => {
+    expect(recommendedEc(opts({ margin: 30, logo: logo('L') }))).toBe('H');
   });
 });
 
 describe('isManualEcUnsafe', () => {
   it('flags L when recommended is H', () => {
-    expect(isManualEcUnsafe(opts({ errorCorrection: 'L', logo: logo(0.30) }))).toBe(true);
+    expect(isManualEcUnsafe(opts({ errorCorrection: 'L', logo: logo('L') }))).toBe(true);
   });
 
   it('does not flag H when recommended is H', () => {
-    expect(isManualEcUnsafe(opts({ errorCorrection: 'H', logo: logo(0.30) }))).toBe(false);
+    expect(isManualEcUnsafe(opts({ errorCorrection: 'H', logo: logo('L') }))).toBe(false);
   });
 
   it('does not flag M when recommended is M', () => {

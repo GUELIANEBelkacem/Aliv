@@ -21,7 +21,13 @@ export function recommendedEcFromMargin(opts: QrOptions): ErrorCorrection {
 }
 
 function recommendedEcFromLogo(opts: QrOptions): ErrorCorrection {
-  return opts.logo && opts.logo.sizeRatio > LOGO_BUMP_H_THRESHOLD ? 'H' : 'M';
+  if (!opts.logo) return 'M';
+  // Drive auto-EC off the LABEL the user picked, not the snapped sizeRatio.
+  // The snapped ratio is a function of moduleCount, which is a function of EC,
+  // which is a function of the recommended level — using ratio here creates a
+  // two-attractor flip-flop (REFRESH_PLAN §B). The label is the user's intent
+  // and is stable across engine re-renders.
+  return opts.logo.size === 'L' || opts.logo.size === 'XL' ? 'H' : 'M';
 }
 
 // Picks the EC level the app would apply if the user were not overriding it
