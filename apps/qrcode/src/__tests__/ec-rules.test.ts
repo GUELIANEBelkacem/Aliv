@@ -77,6 +77,13 @@ describe('isManualEcUnsafe', () => {
   it('flags M when margin forces Q', () => {
     expect(isManualEcUnsafe(opts({ errorCorrection: 'M', margin: 30 }))).toBe(true);
   });
+
+  it('does NOT flag L on a baseline page (no logo, no big margin)', () => {
+    // Picking L below the M baseline is the user's prerogative — there's no
+    // safety risk to flag. Only fire when the recommendation was bumped
+    // above baseline by an actual trigger.
+    expect(isManualEcUnsafe(opts({ errorCorrection: 'L' }))).toBe(false);
+  });
 });
 
 describe('safeMaxPadding', () => {

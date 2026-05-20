@@ -31,6 +31,32 @@ describe('presets', () => {
       expect(result.level).not.toBe('fail');
     }
   });
+
+  it('non-forcing presets do NOT carry errorCorrection (preserves manual EC)', () => {
+    // applyPreset spreads preset.options on top of current. If a non-forcing
+    // preset included errorCorrection, applying it would silently overwrite
+    // the user's manual choice in advanced mode (audit-D).
+    for (const preset of PRESETS) {
+      if (!preset.forcesAdvanced) {
+        expect(preset.options.errorCorrection).toBeUndefined();
+      }
+    }
+  });
+
+  it('forcing presets do carry errorCorrection (it is their reason to exist)', () => {
+    const forcing = PRESETS.filter((p) => p.forcesAdvanced);
+    expect(forcing.length).toBeGreaterThan(0);
+    for (const preset of forcing) {
+      expect(preset.options.errorCorrection).toBeDefined();
+    }
+  });
+
+  it('applyPreset preserves caller errorCorrection when preset has none', () => {
+    const cyan = PRESETS.find((p) => p.id === 'cyan-brand')!;
+    const current = { ...DEFAULT_QR_OPTIONS, errorCorrection: 'Q' as const };
+    const out = applyPreset(current, cyan);
+    expect(out.errorCorrection).toBe('Q');
+  });
 });
 
 describe('PresetGallery', () => {

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { PRESETS, type Preset } from './presets';
 import { createQr } from '../lib/qr-engine';
-import type { QrOptions } from '../lib/types';
+import { DEFAULT_QR_OPTIONS, type QrOptions } from '../lib/types';
 
 interface PresetGalleryProps {
   onApply: (preset: Preset) => void;
@@ -15,6 +15,7 @@ function PresetThumbnail({ preset }: { preset: Preset }) {
     if (!ref.current) return;
     const node = ref.current;
     const opts: QrOptions = {
+      ...DEFAULT_QR_OPTIONS,
       ...preset.options,
       data: 'Aliv',
       size: 64,

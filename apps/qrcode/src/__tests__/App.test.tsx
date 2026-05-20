@@ -31,4 +31,18 @@ describe('QR app shell', () => {
     const ecPicker = container.querySelector('[aria-label="Error correction level"]');
     expect(ecPicker).not.toBeNull();
   });
+
+  it('toggling Advanced ON seeds the picker from current effective EC', () => {
+    // Audit-B regression: with no logo on a baseline page, effective=M.
+    // Toggling Advanced ON should leave the picker on M, not on a stale
+    // value. With a logo (effective=H) the picker should start at H.
+    const { container, getByText, getByTestId } = render(<App />);
+    fireEvent.click(getByText('Advanced'));
+    fireEvent.click(getByTestId('qr-advanced-toggle'));
+    const active = container.querySelector(
+      '[aria-label="Error correction level"] [data-active="true"]',
+    );
+    // No logo / no big padding → effective=M → picker shows M.
+    expect(active?.getAttribute('data-segment-value')).toBe('M');
+  });
 });

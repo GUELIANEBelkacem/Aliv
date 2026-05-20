@@ -97,33 +97,34 @@ export default function App() {
   // (lib/ec-rules.recommendedEc). advancedEc=true switches to manual.
   const recommended = recommendedEc(options);
 
-  // Surface an auto-bump as a transient toast (not a sticky banner — a
-  // persistent warn-tone notice reads as "something is wrong"). The toast
-  // fires on the rising edge of `recommended` while in auto mode. The 250 ms
-  // debounce stops a drag across a threshold from spamming notifications.
-  const lastRecommendedRef = useRef(recommended);
-  const [toastTrigger, setToastTrigger] = useState(0);
-  const [toastLevel, setToastLevel] = useState(recommended);
-  useEffect(() => {
-    if (advancedEc) {
-      lastRecommendedRef.current = recommended;
-      return;
-    }
-    const t = setTimeout(() => {
-      if (EC_RANK[recommended] > EC_RANK[lastRecommendedRef.current]) {
-        setToastLevel(recommended);
-        setToastTrigger((n) => n + 1);
-      }
-      lastRecommendedRef.current = recommended;
-    }, 250);
-    return () => clearTimeout(t);
-  }, [recommended, advancedEc]);
-
   const effectiveOptions = useMemo<QrOptions>(() => ({
     ...options,
     data: built.ok ? (built.value ?? '') : ' ',
     errorCorrection: advancedEc ? options.errorCorrection : recommended,
   }), [options, built.ok, built.value, advancedEc, recommended]);
+
+  // Surface an auto-driven EC change as a transient toast. Watches the
+  // *effective* EC (not just `recommended`) so toggling Advanced off and
+  // having auto take over with a higher level also announces itself.
+  // While Advanced is ON, manual picks aren't surprises — skip the toast.
+  const effectiveEc = effectiveOptions.errorCorrection;
+  const lastEffectiveEcRef = useRef(effectiveEc);
+  const [toastTrigger, setToastTrigger] = useState(0);
+  const [toastLevel, setToastLevel] = useState(effectiveEc);
+  useEffect(() => {
+    if (advancedEc) {
+      lastEffectiveEcRef.current = effectiveEc;
+      return;
+    }
+    const t = setTimeout(() => {
+      if (EC_RANK[effectiveEc] > EC_RANK[lastEffectiveEcRef.current]) {
+        setToastLevel(effectiveEc);
+        setToastTrigger((n) => n + 1);
+      }
+      lastEffectiveEcRef.current = effectiveEc;
+    }, 250);
+    return () => clearTimeout(t);
+  }, [effectiveEc, advancedEc]);
 
   // The frame layout decides the *inscribed* pixel size of the QR engine
   // (smaller than options.size when the frame is a circle). LogoControls needs
@@ -142,9 +143,24 @@ export default function App() {
     update({ errorCorrection: level });
   }
 
+  function handleAdvancedChange(next: boolean) {
+    // Going auto → advanced: seed `options.errorCorrection` from the EC the
+    // engine is actually using. Otherwise flipping the switch silently drops
+    // the level (e.g. dropping a logo bumps to H; opening Advanced would
+    // expose the stale default M).
+    if (next && !advancedEc) {
+      update({ errorCorrection: effectiveOptions.errorCorrection });
+    }
+    setAdvancedEc(next);
+  }
+
   function handleApplyPreset(preset: Preset) {
     setOptions((prev) => applyPreset(prev, preset));
-    setAdvancedEc(preset.forcesAdvanced ?? false);
+    // Only forcing presets flip Advanced on; non-forcing presets leave the
+    // user's mode alone. Combined with presets no longer carrying
+    // errorCorrection (presets.ts), an in-flight manual EC choice survives
+    // applying a colour/shape preset.
+    if (preset.forcesAdvanced) setAdvancedEc(true);
     setCurrentPresetId(preset.id);
   }
 
@@ -285,7 +301,7 @@ export default function App() {
                 options={options}
                 effectiveEc={effectiveOptions.errorCorrection}
                 advancedEc={advancedEc}
-                onAdvancedChange={setAdvancedEc}
+                onAdvancedChange={handleAdvancedChange}
                 onEcChange={handleEcChange}
               />
             </Panel>

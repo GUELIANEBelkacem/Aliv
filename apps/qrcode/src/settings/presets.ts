@@ -6,7 +6,10 @@ export interface Preset {
   name: string;
   // Presets carry the visual subset of QR options. `size` lives outside so a
   // future size control isn't snapped back on preset apply (REVIEW §3.5).
-  options: Omit<QrOptions, 'data' | 'logo' | 'size'>;
+  // Partial because non-forcing presets must NOT touch errorCorrection —
+  // applying one in advanced mode would otherwise silently overwrite the
+  // user's manual EC choice.
+  options: Partial<Omit<QrOptions, 'data' | 'logo' | 'size'>>;
   /**
    * When true, applying this preset flips the Advanced toggle on so the
    * preset's explicit `errorCorrection` is honoured. Without this the auto
@@ -16,7 +19,6 @@ export interface Preset {
 }
 
 const base = (overrides: Partial<Preset['options']>): Preset['options'] => ({
-  errorCorrection: 'M',
   margin: 12,
   foreground: { type: 'solid', color: '#0c0d12' },
   background: { type: 'solid', color: '#ffffff' },

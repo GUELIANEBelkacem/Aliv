@@ -35,7 +35,12 @@ export function recommendedEc(opts: QrOptions): ErrorCorrection {
 }
 
 export function isManualEcUnsafe(opts: QrOptions): boolean {
-  return EC_RANK[opts.errorCorrection] < EC_RANK[recommendedEc(opts)];
+  const rec = recommendedEc(opts);
+  // When the recommendation is just the M baseline (no logo, no big padding),
+  // picking L is the user's prerogative — not a safety issue. Only flag a
+  // manual choice as unsafe when the rule was actually bumped above baseline.
+  if (rec === 'M') return false;
+  return EC_RANK[opts.errorCorrection] < EC_RANK[rec];
 }
 
 // Cap logo padding so the rendered embedded image is at least
