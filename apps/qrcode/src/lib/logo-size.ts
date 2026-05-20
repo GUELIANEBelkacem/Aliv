@@ -1,4 +1,5 @@
-import type { ErrorCorrection, QrOptions } from './types';
+import type { ErrorCorrection, LogoSizeLabel, QrOptions } from './types';
+import { LOGO_SIZE_LABELS } from './types';
 
 /**
  * qr-code-styling renders an embedded logo at `oX * dotSize` where
@@ -84,6 +85,45 @@ export function computeLogoSizeBuckets(opts: ComputeOpts): LogoSizeBucket[] {
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+export interface LabeledBucket {
+  label: LogoSizeLabel;
+  bucket: LogoSizeBucket;
+}
+
+/**
+ * Map the dynamic bucket list to up to 4 user-facing labels (S, M, L, XL).
+ * If fewer than 4 distinct buckets are available, fewer labels are returned —
+ * we don't show "XL" when it would render the same as "L".
+ */
+export function labeledBuckets(buckets: LogoSizeBucket[]): LabeledBucket[] {
+  return buckets.slice(0, LOGO_SIZE_LABELS.length).map((bucket, i) => ({
+    label: LOGO_SIZE_LABELS[i],
+    bucket,
+  }));
+}
+
+/**
+ * Resolve a label back to a concrete ratio against the current bucket list.
+ * Falls back to the last available bucket when the chosen label is past the
+ * end (e.g. user picked XL but only S/M/L exist for this QR).
+ */
+export function labelToRatio(label: LogoSizeLabel, buckets: LogoSizeBucket[]): number | undefined {
+  if (buckets.length === 0) return undefined;
+  const idx = Math.min(LOGO_SIZE_LABELS.indexOf(label), buckets.length - 1);
+  return buckets[idx]?.ratio;
+}
+
+/**
+ * Reverse lookup: which label is the current ratio nearest to? Used to keep
+ * the segmented control's `value` in sync with whatever ratio the engine is
+ * actually rendering.
+ */
+export function nearestLabel(buckets: LogoSizeBucket[], ratio: number): LogoSizeLabel {
+  if (buckets.length === 0) return 'M';
+  const idx = nearestBucketIndex(buckets, ratio);
+  return LOGO_SIZE_LABELS[Math.min(idx, LOGO_SIZE_LABELS.length - 1)];
 }
 
 /** Pick the bucket whose ratio is closest to the current slider value. */

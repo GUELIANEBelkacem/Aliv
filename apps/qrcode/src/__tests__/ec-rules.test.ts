@@ -13,7 +13,7 @@ function opts(overrides: Partial<QrOptions> = {}): QrOptions {
 }
 
 function logo(ratio: number): LogoConfig {
-  return { src: 'data:image/png;base64,xxx', sizeRatio: ratio, padding: 0, shape: 'square' };
+  return { src: 'data:image/png;base64,xxx', size: 'M', sizeRatio: ratio, padding: 0, shape: 'square' };
 }
 
 describe('recommendedEcFromMargin', () => {

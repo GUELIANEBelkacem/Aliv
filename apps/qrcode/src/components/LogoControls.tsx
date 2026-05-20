@@ -4,11 +4,13 @@ import { LogoUpload } from './LogoUpload';
 import { clipLogoToShape } from '../lib/logo-utils';
 import {
   computeLogoSizeBuckets,
+  labeledBuckets,
+  labelToRatio,
   nearestBucketIndex,
   type LogoSizeBucket,
 } from '../lib/logo-size';
 import { safeMaxPadding } from '../lib/ec-rules';
-import type { ErrorCorrection, LogoConfig } from '../lib/types';
+import type { ErrorCorrection, LogoConfig, LogoSizeLabel } from '../lib/types';
 
 interface LogoControlsProps {
   logo: LogoConfig | undefined;
@@ -67,6 +69,13 @@ export function LogoControls({
     return computed.length > 0 ? computed : FALLBACK_BUCKETS;
   }, [moduleCount, userEc, autoBumpThreshold]);
 
+  const items = useMemo(() => labeledBuckets(buckets), [buckets]);
+  // Clamp the active label to the available bucket count — e.g. user picked XL
+  // but the new QR + EC combination only yields 3 distinct cell counts → fall
+  // back to L without losing their intent.
+  const activeLabel: LogoSizeLabel | undefined = logo
+    ? (items.find((b) => b.label === logo.size)?.label ?? items[items.length - 1]?.label)
+    : undefined;
   const currentIndex = logo ? nearestBucketIndex(buckets, logo.sizeRatio) : 0;
   const currentBucket = buckets[currentIndex];
 
@@ -97,46 +106,53 @@ export function LogoControls({
     const defaultBucket = buckets[Math.min(1, buckets.length - 1)] ?? FALLBACK_BUCKETS[1];
     onChange({
       src,
+      size: logo?.size ?? 'M',
       sizeRatio: logo?.sizeRatio ?? defaultBucket.ratio,
       padding: logo?.padding ?? 6,
       shape: logo?.shape ?? 'square',
     });
   }
 
-  // If the live moduleCount/EC make the user's current sizeRatio land on a
-  // bucket boundary that no longer exists, snap it to the nearest one. This
-  // happens when content changes (new QR version) — we keep the slider in
-  // sync with reality so dragging it always produces visible change.
+  // Keep options.logo.sizeRatio in sync with options.logo.size. When buckets
+  // change (content edit → new module count, or EC change), the label-to-ratio
+  // mapping shifts; we rewrite sizeRatio so the engine renders what the user
+  // picked. Idempotent — does nothing if already aligned.
   useEffect(() => {
-    if (!logo || buckets.length === 0) return;
-    const target = buckets[currentIndex];
-    if (target && Math.abs(target.ratio - logo.sizeRatio) > 0.005) {
-      onChange({ ...logo, sizeRatio: target.ratio });
+    if (!logo || items.length === 0) return;
+    const targetRatio = labelToRatio(activeLabel ?? 'M', buckets);
+    if (targetRatio !== undefined && Math.abs(targetRatio - logo.sizeRatio) > 0.005) {
+      onChange({ ...logo, size: activeLabel ?? 'M', sizeRatio: targetRatio });
+    } else if (activeLabel && activeLabel !== logo.size) {
+      // Label drifted (e.g. XL → L because bucket count shrank). Keep ratio.
+      onChange({ ...logo, size: activeLabel });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buckets]);
+  }, [buckets, activeLabel]);
 
   return (
     <>
       <LogoUpload src={logo?.src} onChange={setSrc} />
-      {logo && (
+      {logo && items.length > 0 && (
         <>
-          <Slider
-            label="Size"
-            value={currentIndex}
-            min={0}
-            max={Math.max(0, buckets.length - 1)}
-            step={1}
-            onChange={(idx) => {
-              const next = buckets[Math.min(Math.max(0, Math.round(idx)), buckets.length - 1)];
-              if (next) onChange({ ...logo, sizeRatio: next.ratio });
-            }}
-            format={() => {
-              const b = currentBucket ?? buckets[0];
-              if (!b) return '—';
-              return `${Math.round(b.ratio * 100)}% · ${b.cells}-cell`;
-            }}
-          />
+          <div className="qr-field">
+            <label>Size</label>
+            <SegmentedControl<LogoSizeLabel>
+              value={activeLabel ?? items[0].label}
+              options={items.map(({ label }) => ({ value: label, label }))}
+              onChange={(label) => {
+                const target = items.find((b) => b.label === label)?.bucket;
+                if (target) onChange({ ...logo, size: label, sizeRatio: target.ratio });
+              }}
+              ariaLabel="Logo size"
+              full
+            />
+            <span className="qr-field-hint">
+              {currentBucket
+                ? `≈ ${Math.round(currentBucket.ratio * 100)}% · ${currentBucket.cells}-cell`
+                : 'No size available at this EC'}
+              {items.length < 4 && ' · more sizes at higher error correction'}
+            </span>
+          </div>
           <Slider
             label="Padding"
             value={Math.min(logo.padding, maxPadding)}

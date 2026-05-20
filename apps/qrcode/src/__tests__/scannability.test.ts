@@ -39,7 +39,7 @@ describe('assess scannability', () => {
   it('large logo with low EC is warn', () => {
     expect(assess({
       ...DEFAULT_QR_OPTIONS,
-      logo: { src: 'data:image/png;base64,a', sizeRatio: 0.4, padding: 4, shape: 'square' },
+      logo: { src: 'data:image/png;base64,a', size: 'XL', sizeRatio: 0.4, padding: 4, shape: 'square' },
       errorCorrection: 'L',
     }).level).toBe('warn');
   });
@@ -47,7 +47,7 @@ describe('assess scannability', () => {
   it('large logo with EC=H is ok', () => {
     expect(assess({
       ...DEFAULT_QR_OPTIONS,
-      logo: { src: 'data:image/png;base64,a', sizeRatio: 0.4, padding: 4, shape: 'square' },
+      logo: { src: 'data:image/png;base64,a', size: 'XL', sizeRatio: 0.4, padding: 4, shape: 'square' },
       errorCorrection: 'H',
     }).level).toBe('ok');
   });

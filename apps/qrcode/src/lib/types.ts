@@ -17,8 +17,14 @@ export type EyeShape = 'square' | 'rounded' | 'leaf' | 'circle';
 
 export type FrameShape = 'none' | 'square' | 'rounded' | 'circle';
 
+export type LogoSizeLabel = 'S' | 'M' | 'L' | 'XL';
+export const LOGO_SIZE_LABELS: readonly LogoSizeLabel[] = ['S', 'M', 'L', 'XL'] as const;
+
 export interface LogoConfig {
   src: string;
+  /** User-facing size step. Engine reads sizeRatio; this label drives it. */
+  size: LogoSizeLabel;
+  /** Bucket-snapped ratio derived from `size`. App keeps it in sync. */
   sizeRatio: number;
   padding: number;
   shape: 'square' | 'rounded' | 'circle';

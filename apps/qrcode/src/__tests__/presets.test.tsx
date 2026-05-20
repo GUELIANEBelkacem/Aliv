@@ -18,7 +18,7 @@ describe('presets', () => {
   });
 
   it('applyPreset preserves data and logo from current options', () => {
-    const current = { ...DEFAULT_QR_OPTIONS, data: 'keep-me', logo: { src: 'x', sizeRatio: 0.2, padding: 4, shape: 'square' as const } };
+    const current = { ...DEFAULT_QR_OPTIONS, data: 'keep-me', logo: { src: 'x', size: 'M' as const, sizeRatio: 0.2, padding: 4, shape: 'square' as const } };
     const out = applyPreset(current, PRESETS[1]);
     expect(out.data).toBe('keep-me');
     expect(out.logo).toBeDefined();

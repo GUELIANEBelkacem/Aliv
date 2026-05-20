@@ -72,7 +72,7 @@ describe('toStylingOptions', () => {
   it('attaches a logo image when provided', () => {
     const opts = toStylingOptions({
       ...DEFAULT_QR_OPTIONS,
-      logo: { src: 'data:image/png;base64,abc', sizeRatio: 0.2, padding: 4, shape: 'square' },
+      logo: { src: 'data:image/png;base64,abc', size: 'M', sizeRatio: 0.2, padding: 4, shape: 'square' },
     });
     expect(opts.image).toBe('data:image/png;base64,abc');
     expect(opts.imageOptions?.imageSize).toBe(0.2);

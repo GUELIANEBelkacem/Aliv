@@ -67,30 +67,33 @@ describe('LogoUpload', () => {
 });
 
 describe('LogoControls', () => {
-  const logo = { src: 'data:image/png;base64,abc', sizeRatio: 0.2, padding: 4, shape: 'square' as const };
+  const logo = { src: 'data:image/png;base64,abc', size: 'M' as const, sizeRatio: 0.23, padding: 4, shape: 'square' as const };
   const baseProps = { moduleCount: 25, qrPixelSize: 280, autoBumpThreshold: 0.2 };
 
-  it('does not render size/padding/shape when no logo set', () => {
-    const { queryByLabelText } = render(
+  it('does not render the size selector when no logo set', () => {
+    const { queryByRole } = render(
       <LogoControls logo={undefined} onChange={() => {}} {...baseProps} />,
     );
-    expect(queryByLabelText('Size')).toBeNull();
+    expect(queryByRole('radiogroup', { name: /logo size/i })).toBeNull();
   });
 
-  it('shows controls when a logo is set', () => {
-    const { getByLabelText } = render(
+  it('shows S/M/L/XL labels when a logo is set', () => {
+    const { getByRole } = render(
       <LogoControls logo={logo} onChange={() => {}} {...baseProps} />,
     );
-    expect(getByLabelText('Size')).toBeInTheDocument();
-    expect(getByLabelText('Padding')).toBeInTheDocument();
+    const group = getByRole('radiogroup', { name: /logo size/i });
+    expect(group).toBeInTheDocument();
+    // 4 buckets at default settings → all 4 labels.
+    const buttons = group.querySelectorAll('[data-segment-value]');
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    expect(buttons.length).toBeLessThanOrEqual(4);
   });
 
   it('clamps padding slider max so the embedded image stays visible', () => {
-    // With a tiny inscribed QR (e.g. circle frame: 194 / 25 ≈ 7.76 dotSize
-    // and the smallest bucket at 3 cells → hole ≈ 23 px) the slider can't
-    // go past ~3 px or the rendered <image> would collapse / mis-position.
-    // Without the clamp this test would let the slider go to 16 px.
-    const small = { ...logo, sizeRatio: 0.16 };
+    // With a tiny inscribed QR (circle frame → ~194 px / 25 modules) the
+    // smallest bucket renders a ~23-px hole; the slider must cap padding at
+    // ~3 px or the lib collapses the <image> to the corner of the stage.
+    const small = { ...logo, size: 'S' as const, sizeRatio: 0.16 };
     const { getByLabelText } = render(
       <LogoControls logo={small} onChange={() => {}} {...baseProps} qrPixelSize={194} />,
     );
@@ -98,20 +101,18 @@ describe('LogoControls', () => {
     expect(Number(padding.max)).toBeLessThanOrEqual(6);
   });
 
-  it('emits a bucketed sizeRatio when the size slider moves', () => {
+  it('emits a labeled change with a matching bucketed sizeRatio', () => {
     const onChange = vi.fn();
-    const { getByLabelText } = render(
+    const { getByRole } = render(
       <LogoControls logo={logo} onChange={onChange} {...baseProps} />,
     );
-    // The size slider now exposes bucket indices, not raw ratios. Picking
-    // the highest index must produce one of the precomputed bucket ratios,
-    // never the raw input value.
-    fireEvent.change(getByLabelText('Size'), { target: { value: '2' } });
+    const group = getByRole('radiogroup', { name: /logo size/i });
+    const sButton = group.querySelector('[data-segment-value="S"]') as HTMLElement;
+    fireEvent.click(sButton);
     expect(onChange).toHaveBeenCalled();
     const call = onChange.mock.calls.at(-1)?.[0];
+    expect(call.size).toBe('S');
     expect(call.sizeRatio).toBeGreaterThanOrEqual(0.15);
     expect(call.sizeRatio).toBeLessThanOrEqual(0.35);
-    // Whatever ratio we get, it isn't the literal slider input.
-    expect(call.sizeRatio).not.toBe(2);
   });
 });
