@@ -72,8 +72,13 @@ export function composeFramedSvg(qrSvg: string, layout: FrameLayout): string {
     backdrop = `<rect x="0" y="0" width="${layout.total}" height="${layout.total}" rx="${layout.backdrop.rx}" ry="${layout.backdrop.rx}" fill="${layout.backdrop.fill}"/>`;
   }
 
+  // xmlns:xlink is mandatory whenever an inner <image> uses xlink:href, which
+  // qr-code-styling does for the embedded logo. Without it the browser's SVG
+  // parser rejects the document — which surfaces as a blank SVG download AND
+  // makes the PNG export fail (the rasteriser loads the SVG via <img>, which
+  // hits the same parser).
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.total}" height="${layout.total}" viewBox="0 0 ${layout.total} ${layout.total}">`
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${layout.total}" height="${layout.total}" viewBox="0 0 ${layout.total} ${layout.total}">`
     + backdrop
     + `<g transform="translate(${tx},${ty}) scale(${scale})">${inner}</g>`
     + `</svg>`

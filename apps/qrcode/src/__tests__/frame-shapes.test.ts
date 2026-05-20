@@ -58,4 +58,13 @@ describe('composeFramedSvg', () => {
     // The inner QR's own rects survive, but no leading backdrop rect at (0,0).
     expect(out.indexOf('<g transform=')).toBeLessThan(out.indexOf('<rect x="10"'));
   });
+
+  it('declares xmlns:xlink so qr-code-styling logo references parse', () => {
+    // qr-code-styling emits <image xlink:href="data:..."> for embedded logos.
+    // Without the xlink namespace on the outer SVG the document is invalid →
+    // both SVG download and PNG rasterisation fail.
+    const layout = frameLayout('none', 280, '#fff');
+    const out = composeFramedSvg(qrSvg, layout);
+    expect(out).toContain('xmlns:xlink="http://www.w3.org/1999/xlink"');
+  });
 });
