@@ -414,6 +414,16 @@ body {
  * frame, Eye ball). Trigger and each option render the shape preview SVG
  * next to / above the text. Pattern mirrors the content-type picker. */
 .qr-sel { position: relative; }
+/* Eyebrow label above the trigger — same uppercase treatment as the
+ * content-type picker so the two read as siblings. Overrides the default
+ * .qr-field label style via higher specificity. */
+.qr-sel > label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  font-weight: 600;
+}
 .qr-sel-trigger {
   display: flex;
   align-items: center;
@@ -546,9 +556,13 @@ body {
   background: var(--accent-soft);
   color: var(--accent);
 }
+/* Selected: tile is the "blue-light outside" (accent-soft), glyph is the
+ * "blue inside" (accent). The swatch around the glyph blends into the tile
+ * so the shape itself reads as the highlight. Matches the look the user
+ * called out — opposite of the previous bg-coloured glyph on solid accent. */
 .qr-sel-option.is-selected .qr-sel-option-icon {
-  background: var(--accent);
-  color: var(--bg);
+  background: transparent;
+  color: var(--accent);
 }
 .qr-sel-option-label { line-height: 1.2; }
 
