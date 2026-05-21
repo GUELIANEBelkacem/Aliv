@@ -18,7 +18,7 @@ describe('QR app shell', () => {
     // Switch to Advanced rail.
     fireEvent.click(getByText('Advanced'));
     // Picker is hidden by default; only the auto-mode status block is shown.
-    const ecPicker = container.querySelector('[aria-label="Protection level"]');
+    const ecPicker = container.querySelector('[aria-label="Error correction"]');
     expect(ecPicker).toBeNull();
     const statusBlock = container.querySelector('[data-testid="qr-advanced-status"]');
     expect(statusBlock).not.toBeNull();
@@ -28,7 +28,7 @@ describe('QR app shell', () => {
     const { container, getByText, getByTestId } = render(<App />);
     fireEvent.click(getByText('Advanced'));
     fireEvent.click(getByTestId('qr-advanced-toggle'));
-    const ecPicker = container.querySelector('[aria-label="Protection level"]');
+    const ecPicker = container.querySelector('[aria-label="Error correction"]');
     expect(ecPicker).not.toBeNull();
   });
 
@@ -40,7 +40,7 @@ describe('QR app shell', () => {
     fireEvent.click(getByText('Advanced'));
     fireEvent.click(getByTestId('qr-advanced-toggle'));
     const active = container.querySelector(
-      '[aria-label="Protection level"] [data-active="true"]',
+      '[aria-label="Error correction"] [data-active="true"]',
     );
     // No logo / no big padding → effective=M → picker shows M.
     expect(active?.getAttribute('data-segment-value')).toBe('M');

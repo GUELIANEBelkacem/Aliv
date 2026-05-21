@@ -45,7 +45,7 @@ export function EcAutoBumpToast({ trigger, level, direction }: EcAutoBumpToastPr
     >
       <span className="qr-ec-toast-dot" aria-hidden="true" />
       <span>
-        Auto · Protection {verb} to <strong>{EC_LABEL[level]}</strong>
+        Auto · Error correction {verb} to <strong>{EC_LABEL[level]}</strong>
       </span>
     </div>
   );

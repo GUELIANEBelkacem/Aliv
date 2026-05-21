@@ -44,7 +44,7 @@ export function assess(opts: QrOptions): ScannabilityResult {
   if (isManualEcUnsafe(opts)) {
     const rec = recommendedEc(opts);
     bump('warn');
-    messages.push(`Protection level is ${EC_LABEL[opts.errorCorrection]} but this design usually needs ${EC_LABEL[rec]} to scan reliably.`);
+    messages.push(`Error correction is ${EC_LABEL[opts.errorCorrection]} but this design usually needs ${EC_LABEL[rec]} to scan reliably.`);
   }
 
   return { level, messages };

@@ -12,10 +12,10 @@ interface AdvancedPanelProps {
 }
 
 /**
- * The "Advanced" rail panel. By default the protection level is auto-tuned
- * and the section just shows the resulting choice. Toggling Advanced reveals
- * the picker; a manual choice below what the rule recommends surfaces an
- * inline warning that names the recommended level.
+ * The "Advanced" rail panel. By default error correction is auto-tuned and
+ * the section just shows the resulting choice. Toggling Advanced reveals the
+ * picker; a manual choice below what the rule recommends surfaces an inline
+ * warning that names the recommended level.
  */
 export function AdvancedPanel({
   options,
@@ -31,7 +31,7 @@ export function AdvancedPanel({
     <>
       <div className="qr-advanced-status" data-testid="qr-advanced-status">
         <div className="qr-advanced-status-row">
-          <span className="qr-advanced-status-label">Protection level</span>
+          <span className="qr-advanced-status-label">Error correction</span>
           <span className="qr-advanced-status-value">{EC_LABEL[effectiveEc]}</span>
         </div>
         <span className="qr-field-hint">
@@ -46,7 +46,7 @@ export function AdvancedPanel({
           onChange={(e) => onAdvancedChange(e.target.checked)}
           data-testid="qr-advanced-toggle"
         />
-        Let me set protection myself
+        Let me set error correction myself
       </label>
 
       {advancedEc && (
@@ -57,10 +57,10 @@ export function AdvancedPanel({
           />
           {showUnsafeWarning && (
             <div data-testid="qr-advanced-unsafe-warn">
-              <Banner severity="warn" title={`This setup usually needs ${EC_LABEL[recommended]} protection`}>
-                With <strong>{EC_LABEL[options.errorCorrection]}</strong> protection your QR may fail
-                to scan — large logos and wide padding leave less room for damage. Switch back to
-                auto, or pick at least <strong>{EC_LABEL[recommended]}</strong>.
+              <Banner severity="warn" title={`This setup usually needs ${EC_LABEL[recommended]} error correction`}>
+                With <strong>{EC_LABEL[options.errorCorrection]}</strong> error correction your QR
+                may fail to scan — large logos and wide padding leave less room for damage. Switch
+                back to auto, or pick at least <strong>{EC_LABEL[recommended]}</strong>.
               </Banner>
             </div>
           )}

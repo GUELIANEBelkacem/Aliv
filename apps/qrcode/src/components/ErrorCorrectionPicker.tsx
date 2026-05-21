@@ -17,17 +17,17 @@ interface Props {
 export function ErrorCorrectionPicker({ value, onChange }: Props) {
   return (
     <div className="qr-field">
-      <label>Protection level</label>
+      <label>Error correction</label>
       <SegmentedControl<ErrorCorrection>
         value={value}
         options={LEVELS}
         onChange={onChange}
-        ariaLabel="Protection level"
+        ariaLabel="Error correction"
         full
       />
       <span className="qr-field-hint">
-        Higher protection makes the code denser but more tolerant of logos
-        and scratches.
+        Higher error correction makes the code denser but more tolerant of
+        logos and scratches.
       </span>
     </div>
   );
