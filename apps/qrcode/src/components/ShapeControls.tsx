@@ -1,5 +1,6 @@
 import { SegmentedControl } from '@aliv/ui';
 import { ShapeSelect } from './ShapeSelect';
+import { ShapeIcon } from './ShapeIcon';
 import type { ModuleShape, EyeShape, FrameShape } from '../lib/types';
 
 const MODULE_SHAPES: { value: ModuleShape; label: string }[] = [
@@ -20,6 +21,14 @@ const EYE_SHAPES: { value: EyeShape; label: string }[] = [
   { value: 'dots', label: 'Dots' },
   { value: 'circle', label: 'Circle' },
 ];
+
+function withIcons<T extends string>(items: { value: T; label: string }[]) {
+  return items.map((s) => ({
+    value: s.value,
+    label: s.label,
+    icon: <ShapeIcon shape={s.value} />,
+  }));
+}
 
 const FRAME_SHAPES: { value: FrameShape; label: string }[] = [
   { value: 'none', label: 'None' },
@@ -65,19 +74,19 @@ export function ShapeControls({
       <ShapeSelect<ModuleShape>
         label="Modules"
         value={moduleShape}
-        options={MODULE_SHAPES}
+        options={withIcons(MODULE_SHAPES)}
         onChange={onModuleShape}
       />
       <ShapeSelect<EyeShape>
         label="Eye frame"
         value={eyeFrameShape}
-        options={EYE_SHAPES}
+        options={withIcons(EYE_SHAPES)}
         onChange={onEyeFrameShape}
       />
       <ShapeSelect<EyeShape>
         label="Eye ball"
         value={eyeBallShape}
-        options={EYE_SHAPES}
+        options={withIcons(EYE_SHAPES)}
         onChange={onEyeBallShape}
       />
     </>

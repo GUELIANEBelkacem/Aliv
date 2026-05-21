@@ -410,17 +410,16 @@ body {
   .qr-ctype-trigger-desc { display: none; }
 }
 
-/* ShapeSelect — slimmer dropdown for picking 1-of-N shape values
- * (Modules, Eye frame, Eye ball). Same UX pattern as the content-type
- * dropdown but text-only tiles. */
+/* ShapeSelect — dropdown for picking 1-of-N shape values (Modules, Eye
+ * frame, Eye ball). Trigger and each option render the shape preview SVG
+ * next to / above the text. Pattern mirrors the content-type picker. */
 .qr-sel { position: relative; }
 .qr-sel-trigger {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  gap: 10px;
   width: 100%;
-  padding: 8px var(--space-3);
+  padding: 8px 10px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -445,7 +444,27 @@ body {
   outline: 2px solid var(--accent-ring);
   outline-offset: 2px;
 }
-.qr-sel-trigger-value { color: var(--text); font-weight: 500; }
+.qr-sel-trigger-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.qr-sel-trigger-icon svg { width: 16px; height: 16px; }
+.qr-sel-trigger-value {
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .qr-sel-chevron {
   width: 14px;
   height: 14px;
@@ -477,23 +496,26 @@ body {
 }
 .qr-sel-option {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 6px;
+  gap: 6px;
+  padding: 10px 6px 8px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
   letter-spacing: -0.005em;
   text-align: center;
   transition:
     border-color var(--dur-fast),
     background var(--dur-fast),
-    transform var(--dur-fast) var(--ease-spring);
+    transform var(--dur-fast) var(--ease-spring),
+    color var(--dur-fast);
 }
 .qr-sel-option:hover {
   border-color: var(--accent-muted);
@@ -503,11 +525,32 @@ body {
   outline: 2px solid var(--accent-ring);
   outline-offset: 2px;
 }
+.qr-sel-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.qr-sel-option-icon svg { width: 18px; height: 18px; }
+.qr-sel-option:hover .qr-sel-option-icon {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 .qr-sel-option.is-selected {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
 }
+.qr-sel-option.is-selected .qr-sel-option-icon {
+  background: var(--accent);
+  color: var(--bg);
+}
+.qr-sel-option-label { line-height: 1.2; }
 
 .qr-group-header {
   display: flex;

@@ -1,9 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface ShapeSelectOption<T extends string> {
   value: T;
   label: string;
+  /** Small preview shown both on the trigger (when selected) and inside the tile. */
+  icon?: ReactNode;
 }
 
 interface ShapeSelectProps<T extends string> {
@@ -17,10 +19,10 @@ interface ShapeSelectProps<T extends string> {
 }
 
 /**
- * Dropdown selector for shape pickers — same UX pattern as the content-type
- * selector. A trigger shows the current label; clicking opens a glass
- * popover with a grid of option tiles. Used for Modules, Eye frame and Eye
- * ball where 6-7 options no longer fit in a segmented row.
+ * Dropdown selector for shape pickers — same UX as the content-type picker.
+ * Trigger shows the current option's icon + label; clicking opens a glass
+ * popover with a grid of tiles. Used for Modules, Eye frame and Eye ball
+ * where 6-7 options no longer fit in a segmented row.
  */
 export function ShapeSelect<T extends string>({
   value,
@@ -68,6 +70,7 @@ export function ShapeSelect<T extends string>({
         aria-labelledby={labelId}
         ref={triggerRef}
       >
+        {current?.icon && <span className="qr-sel-trigger-icon">{current.icon}</span>}
         <span className="qr-sel-trigger-value">{current?.label ?? '—'}</span>
         <ChevronDown
           className="qr-sel-chevron"
@@ -101,7 +104,8 @@ export function ShapeSelect<T extends string>({
                   triggerRef.current?.focus();
                 }}
               >
-                {opt.label}
+                {opt.icon && <span className="qr-sel-option-icon">{opt.icon}</span>}
+                <span className="qr-sel-option-label">{opt.label}</span>
               </button>
             );
           })}
