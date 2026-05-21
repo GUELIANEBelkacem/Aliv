@@ -64,18 +64,6 @@ export class QrcodePage {
   exportFeedback(): Locator { return this.page.getByTestId('qr-export-feedback'); }
   exportResolution(): Locator { return this.page.getByTestId('qr-export-resolution'); }
 
-  // --- Presets / settings drawer ---------------------------------------
-
-  async openSettings(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Settings' }).click();
-  }
-  presetCards(): Locator { return this.page.getByTestId('qr-preset-card'); }
-  presetCard(id: string): Locator { return this.page.locator(`[data-preset-id="${id}"]`); }
-  async applyPreset(id: string): Promise<void> {
-    await this.openSettings();
-    await this.presetCard(id).click();
-  }
-
   // --- Logo / FAQ -------------------------------------------------------
 
   logoDropzone(): Locator { return this.page.getByTestId('qr-logo-dropzone'); }

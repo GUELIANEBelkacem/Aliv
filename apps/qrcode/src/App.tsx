@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { Sparkles, Palette, Shapes, ImagePlus, Sliders, Download } from 'lucide-react';
-import { AppShell, type Shortcut } from '@aliv/ui';
-import { copyPngFromOptions } from './lib/export';
-import { CONTENT_TYPE_ORDER } from './content/order';
+import { AppShell } from '@aliv/ui';
 import { QrPreview } from './components/QrPreview';
 import { AdvancedPanel } from './components/AdvancedPanel';
 import { PaddingControl } from './components/PaddingControl';
@@ -16,8 +14,6 @@ import { SectionRail, type RailItem } from './components/SectionRail';
 import { assess } from './lib/scannability';
 import { frameLayout } from './lib/frame-shapes';
 import { EC_RANK, recommendedEc } from './lib/ec-rules';
-import { QrSettings } from './settings/QrSettings';
-import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
 import { FaqLauncher } from './sections/FaqLauncher';
 import { ContentEditor } from './content/ContentEditor';
@@ -25,12 +21,6 @@ import { DEFAULT_CONTENT } from './content/defaults';
 import { buildContent } from './content/builders';
 import type { ContentData, ContentType } from './content/types';
 import { DEFAULT_QR_OPTIONS, type QrOptions } from './lib/types';
-
-const SHORTCUTS_LIST = [
-  { keys: 'Ctrl+Shift+C', description: 'Copy PNG' },
-  { keys: 'Ctrl+Shift+S', description: 'Next content type' },
-  { keys: 'Alt+1..6', description: 'Switch tool section' },
-];
 
 type SectionId = 'content' | 'colors' | 'shapes' | 'logo' | 'advanced' | 'export';
 
@@ -76,7 +66,6 @@ export default function App() {
   // the manual pick is restored when Advanced comes back on.
   const [advancedEc, setAdvancedEc] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionId>('content');
-  const [currentPresetId, setCurrentPresetId] = useState<string | undefined>(undefined);
   const [moduleCount, setModuleCount] = useState(0);
 
   const data = contentMap[contentType];
@@ -84,8 +73,6 @@ export default function App() {
 
   function update(patch: Partial<QrOptions>) {
     setOptions((prev) => ({ ...prev, ...patch }));
-    // Any manual option change diverges from the applied preset (REVIEW §1.7).
-    setCurrentPresetId(undefined);
   }
 
   function updateData(next: ContentData) {
@@ -158,33 +145,6 @@ export default function App() {
     setAdvancedEc(next);
   }
 
-  function handleApplyPreset(preset: Preset) {
-    setOptions((prev) => applyPreset(prev, preset));
-    // Only forcing presets flip Advanced on; non-forcing presets leave the
-    // user's mode alone. Combined with presets no longer carrying
-    // errorCorrection (presets.ts), an in-flight manual EC choice survives
-    // applying a colour/shape preset.
-    if (preset.forcesAdvanced) setAdvancedEc(true);
-    setCurrentPresetId(preset.id);
-  }
-
-  function handleReset(reset: QrOptions) {
-    setOptions(reset);
-    setAdvancedEc(false);
-    setCurrentPresetId(undefined);
-    setContentType('url');
-    setContentMap(DEFAULT_CONTENT);
-  }
-
-  const cycleContent = useCallback(() => {
-    const idx = CONTENT_TYPE_ORDER.indexOf(contentType);
-    setContentType(CONTENT_TYPE_ORDER[(idx + 1) % CONTENT_TYPE_ORDER.length]);
-  }, [contentType]);
-
-  const copyPng = useCallback(async () => {
-    await copyPngFromOptions(effectiveOptions);
-  }, [effectiveOptions]);
-
   // Make sure the <html data-app> attribute is set before AppShell's own
   // effect runs so first paint already has the right accent. REVIEW §8.9.
   useEffect(() => {
@@ -205,32 +165,8 @@ export default function App() {
     { id: 'export',  label: 'Export',  icon: Download },
   ];
 
-  const numericShortcuts: Shortcut[] = railItems.map((item, idx) => ({
-    keys: `Alt+${idx + 1}`,
-    handler: () => setActiveSection(item.id),
-    whenInInput: true,
-    description: `Switch to ${item.label}`,
-  }));
-
-  const shortcuts: Shortcut[] = [
-    { keys: 'Ctrl+Shift+C', handler: copyPng, whenInInput: true, description: 'Copy PNG' },
-    { keys: 'Ctrl+Shift+S', handler: cycleContent, whenInInput: true, description: 'Next content type' },
-    ...numericShortcuts,
-  ];
-
   return (
-    <AppShell
-      appId="qrcode"
-      shortcuts={shortcuts}
-      shortcutsList={SHORTCUTS_LIST}
-      settings={
-        <QrSettings
-          onApplyPreset={handleApplyPreset}
-          onReset={handleReset}
-          currentPresetId={currentPresetId}
-        />
-      }
-    >
+    <AppShell appId="qrcode">
       <div className="qr-app">
         <SectionRail items={railItems} active={activeSection} onChange={setActiveSection} />
 

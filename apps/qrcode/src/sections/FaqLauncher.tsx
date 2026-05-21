@@ -22,10 +22,6 @@ const ITEMS = [
     q: 'Can I generate a Wi-Fi QR for a hidden network?',
     a: 'Yes — toggle "Hidden network" in the Wi-Fi tab. We add H:true to the WIFI: payload.',
   },
-  {
-    q: 'What about batch generation / CSV import?',
-    a: 'Not in v1. Tracked for a follow-up release. The current build is a single-QR tool.',
-  },
 ];
 
 function focusableNodes(root: HTMLElement): HTMLElement[] {

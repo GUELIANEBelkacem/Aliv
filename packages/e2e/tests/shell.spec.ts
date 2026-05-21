@@ -26,12 +26,6 @@ for (const app of apps) {
       await expect(tiles).toHaveCount(4);
     });
 
-    test('shortcuts modal opens via the header button', async ({ page }) => {
-      await page.goto(app.url);
-      await page.getByRole('button', { name: 'Keyboard shortcuts' }).click();
-      await expect(page.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeVisible();
-    });
-
     test('theme toggle flips data-theme', async ({ page }) => {
       await page.goto(app.url);
       const before = await page.locator('html').getAttribute('data-theme');

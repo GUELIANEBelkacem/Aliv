@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Keyboard, Settings, LayoutGrid } from 'lucide-react';
+import { Settings, LayoutGrid } from 'lucide-react';
 import { Drawer } from './Drawer';
-import { ShortcutsModal } from './ShortcutsModal';
 import { AppSwitcher } from './AppSwitcher';
 import { Logo } from './Logo';
 import { IconButton } from './IconButton';
@@ -12,8 +11,13 @@ import type { AppId } from '../registry/types';
 
 interface AppShellProps {
   appId: AppId;
+  /**
+   * Programmatic keyboard shortcuts the app wants to register (e.g. Ctrl+S
+   * for save). Still wired through `useShortcuts` so handlers fire on the
+   * matching keys. The shell no longer renders a help modal — apps should
+   * surface bindings in their own UI if discovery matters.
+   */
   shortcuts?: Shortcut[];
-  shortcutsList?: { keys: string; description: string }[];
   settings?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
@@ -23,7 +27,6 @@ interface AppShellProps {
 export function AppShell({
   appId,
   shortcuts = [],
-  shortcutsList,
   settings,
   footer,
   children,
@@ -31,7 +34,6 @@ export function AppShell({
 }: AppShellProps) {
   const app = getApp(appId);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useEffect(() => {
@@ -39,14 +41,7 @@ export function AppShell({
     document.body.classList.add('aliv-ambient');
   }, [appId]);
 
-  const composedShortcuts: Shortcut[] = [
-    ...shortcuts,
-    { keys: 'Mod+,', handler: () => setSettingsOpen((v) => !v), description: 'Open settings' },
-    { keys: '?', handler: () => setShortcutsOpen((v) => !v), description: 'Show shortcuts' },
-  ];
-  useShortcuts(composedShortcuts);
-
-  const list = shortcutsList ?? composedShortcuts.filter((s) => s.description).map((s) => ({ keys: s.keys, description: s.description as string }));
+  useShortcuts(shortcuts);
 
   return (
     <div className="aliv-shell">
@@ -60,9 +55,6 @@ export function AppShell({
           <span className="aliv-app-name">{app.name}</span>
         </div>
         <div className="aliv-shell-actions">
-          <IconButton label="Keyboard shortcuts" onClick={() => setShortcutsOpen(true)}>
-            <Keyboard aria-hidden="true" />
-          </IconButton>
           {settings && (
             <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
               <Settings aria-hidden="true" />
@@ -81,7 +73,6 @@ export function AppShell({
           {settings}
         </Drawer>
       )}
-      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={list} />
       <AppSwitcher
         open={switcherOpen}
         onClose={() => setSwitcherOpen(false)}

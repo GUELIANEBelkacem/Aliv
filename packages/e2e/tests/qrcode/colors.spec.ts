@@ -49,7 +49,4 @@ test.describe('qrcode · colors', () => {
 
   // K5 — recent colors persist across reload (existing behaviour; lock it in).
   test.skip('K5: recent colors persist across reload', async () => {});
-
-  // K6 — F15 / §8.8: applying a preset must clear stale eyeColor override.
-  test.skip('K6: applying a preset clears stale eyeColor (F15)', async () => {});
 });

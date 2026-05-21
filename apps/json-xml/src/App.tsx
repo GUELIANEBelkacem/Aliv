@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { AppShell, type Shortcut } from '@aliv/ui';
+import { AppShell } from '@aliv/ui';
 import { useSettings, SettingsContext } from './hooks/useSettings';
 import { useConversion } from './hooks/useConversion';
 import { useSwipe } from './hooks/useSwipe';
@@ -34,16 +34,6 @@ const SAMPLE_JSON = `{
 }`;
 
 const AUTO_CONVERT_THRESHOLD = 100 * 1024;
-
-const SHORTCUT_LIST = [
-  { keys: 'Ctrl+Enter', description: 'Convert' },
-  { keys: 'Ctrl+Shift+C', description: 'Copy output' },
-  { keys: 'Ctrl+Shift+S', description: 'Swap input/output' },
-  { keys: 'Ctrl+Shift+B', description: 'Beautify' },
-  { keys: 'Ctrl+Shift+M', description: 'Minify' },
-  { keys: 'Ctrl+,', description: 'Open settings' },
-  { keys: '?', description: 'Show shortcuts' },
-];
 
 function AppInner() {
   const { settings, updateSettings } = useSettings();
@@ -165,20 +155,10 @@ function AppInner() {
   const dividerRef = useRef<HTMLDivElement>(null);
   const { leftPercent } = usePanelResize(editorRef, dividerRef);
 
-  const shortcuts: Shortcut[] = [
-    { keys: 'Ctrl+Enter', handler: manualConvert, whenInInput: true, description: 'Convert' },
-    { keys: 'Ctrl+Shift+C', handler: handleCopy, whenInInput: true, description: 'Copy output' },
-    { keys: 'Ctrl+Shift+S', handler: handleSwap, whenInInput: true, description: 'Swap' },
-    { keys: 'Ctrl+Shift+B', handler: handleBeautify, whenInInput: true, description: 'Beautify' },
-    { keys: 'Ctrl+Shift+M', handler: handleMinify, whenInInput: true, description: 'Minify' },
-  ];
-
   return (
     <SettingsContext.Provider value={{ settings, updateSettings }}>
       <AppShell
         appId="json-xml"
-        shortcuts={shortcuts}
-        shortcutsList={SHORTCUT_LIST}
         settings={
           <SettingsBody
             settings={settings}

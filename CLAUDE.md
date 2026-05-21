@@ -107,11 +107,11 @@ The plan that drove these is `PLATFORM_BUILD_PLAN.md`.
 
 | Workspace | Unit tests |
 |---|---|
-| @aliv/ui | 55 |
+| @aliv/ui | 54 |
 | @aliv/json-xml | 201 |
 | @aliv/web | 7 |
-| @aliv/qrcode | 175 |
-| **Total unit** | **438** |
+| @aliv/qrcode | 174 |
+| **Total unit** | **436** |
 | @aliv/e2e (Playwright) | 91 specs (76 active, 15 skipped) |
 
 ## Performance budgets (current)

@@ -31,11 +31,4 @@ describe('AppShell', () => {
     expect(container.querySelectorAll('[data-tile]').length).toBeGreaterThan(0);
   });
 
-  it('opens shortcuts modal on ? key', () => {
-    const { getByText } = render(
-      <AppShell appId="json-xml"><div /></AppShell>,
-    );
-    fireEvent.keyDown(window, { key: '?' });
-    expect(getByText('Keyboard shortcuts')).toBeInTheDocument();
-  });
 });
