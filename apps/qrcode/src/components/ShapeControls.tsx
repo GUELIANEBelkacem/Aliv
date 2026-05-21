@@ -1,4 +1,5 @@
 import { SegmentedControl } from '@aliv/ui';
+import { ShapeSelect } from './ShapeSelect';
 import type { ModuleShape, EyeShape, FrameShape } from '../lib/types';
 
 const MODULE_SHAPES: { value: ModuleShape; label: string }[] = [
@@ -54,56 +55,31 @@ export function ShapeControls({
         <label>Frame</label>
         <SegmentedControl<FrameShape>
           value={frameShape}
-          options={FRAME_SHAPES.map((s) => ({
-            value: s.value,
-            label: s.label,
-          }))}
+          options={FRAME_SHAPES.map((s) => ({ value: s.value, label: s.label }))}
           onChange={onFrameShape}
           ariaLabel="Frame"
           full
         />
         <span className="qr-field-hint">The card behind the QR + the accent ring around it.</span>
       </div>
-      <div className="qr-field">
-        <label>Modules</label>
-        <SegmentedControl<ModuleShape>
-          value={moduleShape}
-          options={MODULE_SHAPES.map((s) => ({
-            value: s.value,
-            label: s.label,
-          }))}
-          onChange={onModuleShape}
-          ariaLabel="Modules"
-          full
-          size="sm"
-        />
-      </div>
-      <div className="qr-field">
-        <label>Eye frame</label>
-        <SegmentedControl<EyeShape>
-          value={eyeFrameShape}
-          options={EYE_SHAPES.map((s) => ({
-            value: s.value,
-            label: s.label,
-          }))}
-          onChange={onEyeFrameShape}
-          ariaLabel="Eye frame"
-          full
-        />
-      </div>
-      <div className="qr-field">
-        <label>Eye ball</label>
-        <SegmentedControl<EyeShape>
-          value={eyeBallShape}
-          options={EYE_SHAPES.map((s) => ({
-            value: s.value,
-            label: s.label,
-          }))}
-          onChange={onEyeBallShape}
-          ariaLabel="Eye ball"
-          full
-        />
-      </div>
+      <ShapeSelect<ModuleShape>
+        label="Modules"
+        value={moduleShape}
+        options={MODULE_SHAPES}
+        onChange={onModuleShape}
+      />
+      <ShapeSelect<EyeShape>
+        label="Eye frame"
+        value={eyeFrameShape}
+        options={EYE_SHAPES}
+        onChange={onEyeFrameShape}
+      />
+      <ShapeSelect<EyeShape>
+        label="Eye ball"
+        value={eyeBallShape}
+        options={EYE_SHAPES}
+        onChange={onEyeBallShape}
+      />
     </>
   );
 }
