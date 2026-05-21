@@ -10,6 +10,16 @@ export const MIN_EMBEDDED_LOGO_PX    = 16;
 
 export const EC_RANK: Record<ErrorCorrection, number> = { L: 0, M: 1, Q: 2, H: 3 };
 
+// Plain-English names for the four error-correction levels. The single-letter
+// codes come from the QR (Quick Response) spec; nobody outside the spec talks
+// in L/M/Q/H. Every user-facing surface should use these labels instead.
+export const EC_LABEL: Record<ErrorCorrection, string> = {
+  L: 'Low',
+  M: 'Normal',
+  Q: 'Strong',
+  H: 'Max',
+};
+
 const max = (a: ErrorCorrection, b: ErrorCorrection): ErrorCorrection =>
   EC_RANK[a] >= EC_RANK[b] ? a : b;
 

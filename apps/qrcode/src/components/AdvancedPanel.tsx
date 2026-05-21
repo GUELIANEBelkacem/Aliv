@@ -1,6 +1,6 @@
 import { Banner } from '@aliv/ui';
 import { ErrorCorrectionPicker } from './ErrorCorrectionPicker';
-import { isManualEcUnsafe, recommendedEc } from '../lib/ec-rules';
+import { EC_LABEL, isManualEcUnsafe, recommendedEc } from '../lib/ec-rules';
 import type { ErrorCorrection, QrOptions } from '../lib/types';
 
 interface AdvancedPanelProps {
@@ -12,9 +12,9 @@ interface AdvancedPanelProps {
 }
 
 /**
- * The "Advanced" rail panel. By default error correction is auto-tuned and
- * the section just shows the resulting level. Toggling Advanced reveals the
- * L/M/Q/H picker; a manual choice below what the rule recommends surfaces an
+ * The "Advanced" rail panel. By default the protection level is auto-tuned
+ * and the section just shows the resulting choice. Toggling Advanced reveals
+ * the picker; a manual choice below what the rule recommends surfaces an
  * inline warning that names the recommended level.
  */
 export function AdvancedPanel({
@@ -31,11 +31,11 @@ export function AdvancedPanel({
     <>
       <div className="qr-advanced-status" data-testid="qr-advanced-status">
         <div className="qr-advanced-status-row">
-          <span className="qr-advanced-status-label">Error correction</span>
-          <span className="qr-advanced-status-value">{effectiveEc}</span>
+          <span className="qr-advanced-status-label">Protection level</span>
+          <span className="qr-advanced-status-value">{EC_LABEL[effectiveEc]}</span>
         </div>
         <span className="qr-field-hint">
-          {advancedEc ? 'Manual override' : 'Auto-tuned from logo size + padding'}
+          {advancedEc ? 'You picked this yourself' : 'Auto-tuned for your logo and padding'}
         </span>
       </div>
 
@@ -46,7 +46,7 @@ export function AdvancedPanel({
           onChange={(e) => onAdvancedChange(e.target.checked)}
           data-testid="qr-advanced-toggle"
         />
-        Show advanced controls
+        Let me set protection myself
       </label>
 
       {advancedEc && (
@@ -57,10 +57,10 @@ export function AdvancedPanel({
           />
           {showUnsafeWarning && (
             <div data-testid="qr-advanced-unsafe-warn">
-              <Banner severity="warn" title={`Auto would pick ${recommended}`}>
-                Your settings would normally use {recommended}. Sticking with{' '}
-                {options.errorCorrection} keeps the QR denser but lower-EC reads can
-                miss under heavy logo coverage or large padding.
+              <Banner severity="warn" title={`This setup usually needs ${EC_LABEL[recommended]} protection`}>
+                With <strong>{EC_LABEL[options.errorCorrection]}</strong> protection your QR may fail
+                to scan — large logos and wide padding leave less room for damage. Switch back to
+                auto, or pick at least <strong>{EC_LABEL[recommended]}</strong>.
               </Banner>
             </div>
           )}

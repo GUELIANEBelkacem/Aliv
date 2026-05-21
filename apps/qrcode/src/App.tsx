@@ -9,7 +9,7 @@ import { PaddingControl } from './components/PaddingControl';
 import { ColorControls } from './components/ColorControls';
 import { ShapeControls } from './components/ShapeControls';
 import { LogoControls } from './components/LogoControls';
-import { EcAutoBumpToast } from './components/EcAutoBumpToast';
+import { EcAutoBumpToast, type EcChangeDirection } from './components/EcAutoBumpToast';
 import { ExportPanel } from './components/ExportPanel';
 import { ScannabilityNotice } from './components/ScannabilityNotice';
 import { SectionRail, type RailItem } from './components/SectionRail';
@@ -103,22 +103,27 @@ export default function App() {
     errorCorrection: advancedEc ? options.errorCorrection : recommended,
   }), [options, built.ok, built.value, advancedEc, recommended]);
 
-  // Surface an auto-driven EC change as a transient toast. Watches the
-  // *effective* EC (not just `recommended`) so toggling Advanced off and
-  // having auto take over with a higher level also announces itself.
+  // Surface an auto-driven protection-level change as a transient toast,
+  // either direction. Watches the *effective* EC (not just `recommended`)
+  // so toggling Advanced off with auto taking over also announces itself.
   // While Advanced is ON, manual picks aren't surprises — skip the toast.
   const effectiveEc = effectiveOptions.errorCorrection;
   const lastEffectiveEcRef = useRef(effectiveEc);
   const [toastTrigger, setToastTrigger] = useState(0);
   const [toastLevel, setToastLevel] = useState(effectiveEc);
+  const [toastDirection, setToastDirection] = useState<EcChangeDirection>('up');
   useEffect(() => {
     if (advancedEc) {
       lastEffectiveEcRef.current = effectiveEc;
       return;
     }
     const t = setTimeout(() => {
-      if (EC_RANK[effectiveEc] > EC_RANK[lastEffectiveEcRef.current]) {
+      const prev = lastEffectiveEcRef.current;
+      if (effectiveEc !== prev) {
+        const direction: EcChangeDirection =
+          EC_RANK[effectiveEc] > EC_RANK[prev] ? 'up' : 'down';
         setToastLevel(effectiveEc);
+        setToastDirection(direction);
         setToastTrigger((n) => n + 1);
       }
       lastEffectiveEcRef.current = effectiveEc;
@@ -237,7 +242,7 @@ export default function App() {
               <ScannabilityNotice result={scannability} />
             </div>
           )}
-          <EcAutoBumpToast trigger={toastTrigger} level={toastLevel} />
+          <EcAutoBumpToast trigger={toastTrigger} level={toastLevel} direction={toastDirection} />
 
           {activeSection === 'content' && (
             <Panel icon={Sparkles} title="Content" hint={CONTENT_TYPE_LABELS[contentType]}>

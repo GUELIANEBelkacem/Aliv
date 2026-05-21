@@ -1,6 +1,6 @@
 import type { QrOptions } from './types';
 import { contrastRatio, averageColor } from './color-utils';
-import { isManualEcUnsafe, recommendedEc } from './ec-rules';
+import { EC_LABEL, isManualEcUnsafe, recommendedEc } from './ec-rules';
 
 export type Severity = 'ok' | 'warn' | 'fail';
 
@@ -44,7 +44,7 @@ export function assess(opts: QrOptions): ScannabilityResult {
   if (isManualEcUnsafe(opts)) {
     const rec = recommendedEc(opts);
     bump('warn');
-    messages.push(`Error correction is ${opts.errorCorrection} but this configuration needs ${rec} for reliable scans.`);
+    messages.push(`Protection level is ${EC_LABEL[opts.errorCorrection]} but this design usually needs ${EC_LABEL[rec]} to scan reliably.`);
   }
 
   return { level, messages };
