@@ -63,8 +63,8 @@ export const DEFAULT_QR_OPTIONS: QrOptions = {
   margin: 12,
   foreground: { type: 'solid', color: '#0c0d12' },
   background: { type: 'solid', color: '#ffffff' },
-  moduleShape: 'square',
-  eyeFrameShape: 'square',
-  eyeBallShape: 'square',
+  moduleShape: 'dots',
+  eyeFrameShape: 'extra-rounded',
+  eyeBallShape: 'circle',
   frameShape: 'rounded',
 };

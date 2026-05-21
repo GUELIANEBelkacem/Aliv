@@ -8,16 +8,16 @@ const MODULE_SHAPES: { value: ModuleShape; label: string }[] = [
   { value: 'rounded', label: 'Rounded' },
   { value: 'dots', label: 'Dots' },
   { value: 'classy', label: 'Classy' },
-  { value: 'classy-rounded', label: 'Classy R.' },
-  { value: 'extra-rounded', label: 'Extra R.' },
+  { value: 'classy-rounded', label: 'Classy Rounded' },
+  { value: 'extra-rounded', label: 'Extra Rounded' },
 ];
 
 const EYE_SHAPES: { value: EyeShape; label: string }[] = [
   { value: 'square', label: 'Square' },
   { value: 'rounded', label: 'Rounded' },
-  { value: 'extra-rounded', label: 'Extra R.' },
+  { value: 'extra-rounded', label: 'Extra Rounded' },
   { value: 'classy', label: 'Classy' },
-  { value: 'classy-rounded', label: 'Classy R.' },
+  { value: 'classy-rounded', label: 'Classy Rounded' },
   { value: 'dots', label: 'Dots' },
   { value: 'circle', label: 'Circle' },
 ];
