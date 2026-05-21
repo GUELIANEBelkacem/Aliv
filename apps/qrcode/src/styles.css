@@ -11,12 +11,15 @@ body {
 .qr-app {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
-  flex: 1;
-  min-height: 0;
   padding: var(--space-6);
   gap: var(--space-5);
   max-width: 1400px;
-  margin: 0 auto;
+  /* `margin: auto` centers both axes inside the flex-column .aliv-shell-main.
+   * Replaces the previous `flex: 1` (which made the block fill the height)
+   * so the content block now sits centred in whatever vertical space is
+   * left below the header. align-items: start keeps the rail / panel /
+   * preview tops aligned to each other, just as before. */
+  margin: auto;
   width: 100%;
   align-items: start;
 }
