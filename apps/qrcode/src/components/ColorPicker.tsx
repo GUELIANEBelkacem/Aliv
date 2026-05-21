@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import { Pipette, Check } from 'lucide-react';
-import { isValidHex, expandHex, hexToHsl, hslToHex } from '../lib/color-utils';
+import { isValidHex, expandHex } from '../lib/color-utils';
 
 interface ColorPickerProps {
   value: string;
@@ -102,12 +103,7 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
 }
 
 function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const hsl = hexToHsl(value) ?? { h: 200, s: 50, l: 50 };
   const [recent, setRecent] = useState<string[]>(() => readRecent());
-
-  function emit(next: { h: number; s: number; l: number }) {
-    onChange(hslToHex(next.h, next.s, next.l));
-  }
 
   function applyChip(hex: string) {
     onChange(hex);
@@ -123,38 +119,15 @@ function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: 
     } catch { /* user cancelled */ }
   }
 
-  const sat = Math.max(0, Math.min(100, hsl.s));
-  const light = Math.max(0, Math.min(100, hsl.l));
-  const hue = Math.max(0, Math.min(360, hsl.h));
-
-  function onAreaPointer(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.buttons !== 1 && e.type !== 'pointerdown') return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    emit({ h: hue, s: Math.round(x * 100), l: Math.round((1 - y) * 100) });
-  }
-
   const eyedropperSupported = typeof window !== 'undefined' && 'EyeDropper' in window;
+  const safeValue = isValidHex(value) ? value : '#000000';
 
   return (
     <div className="qr-cp-popover" role="dialog" aria-label="Color picker">
-      <div
-        className="qr-cp-area"
-        style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))` }}
-        onPointerDown={onAreaPointer}
-        onPointerMove={onAreaPointer}
-      >
-        <span className="qr-cp-area-thumb" style={{ left: `${sat}%`, top: `${100 - light}%` }} />
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={360}
-        value={hue}
-        onChange={(e) => emit({ ...hsl, h: Number(e.target.value) })}
-        className="qr-cp-hue"
-        aria-label="Hue"
+      <HexColorPicker
+        color={safeValue}
+        onChange={(c) => onChange(c)}
+        className="qr-cp-rc"
       />
       <div className="qr-cp-chips" role="group" aria-label="Brand colors">
         {BRAND_CHIPS.map((chip) => (
