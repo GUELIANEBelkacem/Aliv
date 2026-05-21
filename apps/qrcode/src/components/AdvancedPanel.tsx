@@ -54,6 +54,10 @@ export function AdvancedPanel({
           <ErrorCorrectionPicker
             value={options.errorCorrection}
             onChange={onEcChange}
+            // Only enforce a floor when the rule was actually bumped from
+            // baseline. With no logo / small padding the full L-H range is
+            // open — the user is free to pick a lower level.
+            minLevel={recommended === 'M' ? undefined : recommended}
           />
           {showUnsafeWarning && (
             <div data-testid="qr-advanced-unsafe-warn">

@@ -18,6 +18,27 @@ describe('ErrorCorrectionPicker', () => {
     fireEvent.click(container.querySelector('[data-segment-value="H"]')!);
     expect(onChange).toHaveBeenCalledWith('H');
   });
+
+  it('disables levels below minLevel', () => {
+    const { container } = render(
+      <ErrorCorrectionPicker value="H" onChange={() => {}} minLevel="H" />,
+    );
+    const buttons = ['L', 'M', 'Q', 'H'].map((v) =>
+      container.querySelector(`[data-segment-value="${v}"]`) as HTMLButtonElement,
+    );
+    expect(buttons[0].disabled).toBe(true); // L
+    expect(buttons[1].disabled).toBe(true); // M
+    expect(buttons[2].disabled).toBe(true); // Q
+    expect(buttons[3].disabled).toBe(false); // H — the floor itself stays open
+  });
+
+  it('omitting minLevel enables every level', () => {
+    const { container } = render(<ErrorCorrectionPicker value="M" onChange={() => {}} />);
+    for (const v of ['L', 'M', 'Q', 'H']) {
+      const b = container.querySelector(`[data-segment-value="${v}"]`) as HTMLButtonElement;
+      expect(b.disabled).toBe(false);
+    }
+  });
 });
 
 describe('PaddingControl', () => {
