@@ -1,5 +1,5 @@
 import type { QrOptions } from './types';
-import { contrastRatio, averageColor } from './color-utils';
+import { contrastRatio } from './color-utils';
 import { EC_LABEL, isManualEcUnsafe, recommendedEc } from './ec-rules';
 
 export type Severity = 'ok' | 'warn' | 'fail';
@@ -7,6 +7,26 @@ export type Severity = 'ok' | 'warn' | 'fail';
 export interface ScannabilityResult {
   level: Severity;
   messages: string[];
+}
+
+/** Every foreground colour the engine will actually paint — one value for
+ *  solid fills, both stops for a gradient. The fg contrast check now
+ *  surfaces the *worst* of these so a bad stop can't hide behind a good
+ *  average. */
+function foregroundColors(opts: QrOptions): string[] {
+  return opts.foreground.type === 'solid'
+    ? [opts.foreground.color]
+    : [opts.foreground.stops[0], opts.foreground.stops[1]];
+}
+
+/** The colour the engine will actually paint the corner finder pattern in.
+ *  Matches qr-engine.ts: explicit eyeColor wins, otherwise the solid
+ *  foreground colour, otherwise gradient stops[0]. */
+function effectiveEyeColor(opts: QrOptions): string {
+  if (opts.eyeColor) return opts.eyeColor;
+  return opts.foreground.type === 'solid'
+    ? opts.foreground.color
+    : opts.foreground.stops[0];
 }
 
 export function assess(opts: QrOptions): ScannabilityResult {
@@ -17,30 +37,36 @@ export function assess(opts: QrOptions): ScannabilityResult {
     if (to === 'fail' || (to === 'warn' && level !== 'fail')) level = to;
   }
 
-  const fgColor = opts.foreground.type === 'solid'
-    ? opts.foreground.color
-    : averageColor(opts.foreground.stops[0], opts.foreground.stops[1]);
   const bgColor = opts.background.color;
 
-  const fgBgContrast = contrastRatio(fgColor, bgColor);
-  if (fgBgContrast < 3.0) {
-    bump(fgBgContrast < 1.5 ? 'fail' : 'warn');
-    messages.push(`Foreground/background contrast is ${fgBgContrast.toFixed(2)}:1 — most scanners need ≥ 3:1.`);
+  // Foreground: check every stop the gradient passes through (or the solid
+  // value) and report on the worst. Averaging both stops could mask a stop
+  // with terrible contrast.
+  const fgColors = foregroundColors(opts);
+  const fgContrasts = fgColors.map((c) => contrastRatio(c, bgColor));
+  const worstFgContrast = Math.min(...fgContrasts);
+  if (worstFgContrast < 3.0) {
+    bump(worstFgContrast < 1.5 ? 'fail' : 'warn');
+    const where = fgColors.length > 1
+      ? 'One gradient stop sits at'
+      : 'Foreground / background contrast is';
+    messages.push(
+      `${where} ${worstFgContrast.toFixed(2)}:1. Scanners compare brightness, not hue — a colourful design can still read as low-contrast. Aim for ≥ 3:1.`,
+    );
   }
 
-  if (opts.eyeColor) {
-    const eyeContrast = contrastRatio(opts.eyeColor, bgColor);
-    if (eyeContrast < 3.0) {
-      bump(eyeContrast < 1.5 ? 'fail' : 'warn');
-      messages.push(`Eye color contrast vs background is ${eyeContrast.toFixed(2)}:1 — corner markers may not be detected.`);
-    }
+  // Eye marker: always check, whether eyeColor is explicit or inherited
+  // from the foreground. Previously the gate `if (opts.eyeColor)` skipped
+  // gradient-derived eye colours, leaving a real blind spot.
+  const eyeColor = effectiveEyeColor(opts);
+  const eyeContrast = contrastRatio(eyeColor, bgColor);
+  if (eyeContrast < 3.0) {
+    bump(eyeContrast < 1.5 ? 'fail' : 'warn');
+    messages.push(
+      `Eye-marker contrast vs background is ${eyeContrast.toFixed(2)}:1. Scanners read brightness (not hue), so a bright colour on white can still read as low-contrast — try a darker shade.`,
+    );
   }
 
-  // Catches "user is in advanced and picked an EC below what the
-  // configuration actually needs". In auto mode this never fires because
-  // effective EC = recommendedEc by construction. The old sizeRatio > 0.20
-  // rule was unstable — it fired on the M label's snapped ratio at EC=M and
-  // wasn't really a coverage measure.
   if (isManualEcUnsafe(opts)) {
     const rec = recommendedEc(opts);
     bump('warn');
