@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import { Pipette, Check } from 'lucide-react';
+import { Pipette } from 'lucide-react';
 import { isValidHex, expandHex } from '../lib/color-utils';
 
 interface ColorPickerProps {
@@ -9,12 +9,6 @@ interface ColorPickerProps {
   label: string;
   id: string;
 }
-
-const BRAND_CHIPS = [
-  '#0c0d12', '#ffffff',
-  '#7c8cf5', '#22d3ee', '#4ade80', '#f59e0b',
-  '#ef4444', '#ec4899',
-];
 
 const RECENT_KEY = 'qr-color-recent';
 const MAX_RECENT = 6;
@@ -129,21 +123,6 @@ function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: 
         onChange={(c) => onChange(c)}
         className="qr-cp-rc"
       />
-      <div className="qr-cp-chips" role="group" aria-label="Brand colors">
-        {BRAND_CHIPS.map((chip) => (
-          <button
-            key={chip}
-            type="button"
-            className="qr-cp-chip"
-            style={{ background: chip }}
-            onClick={() => applyChip(chip)}
-            aria-label={chip}
-            title={chip}
-          >
-            {value.toLowerCase() === chip.toLowerCase() && <Check aria-hidden="true" />}
-          </button>
-        ))}
-      </div>
       {recent.length > 0 && (
         <div className="qr-cp-chips qr-cp-recent" role="group" aria-label="Recent colors">
           {recent.map((c) => (
