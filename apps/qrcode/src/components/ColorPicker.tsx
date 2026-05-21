@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import { Pipette } from 'lucide-react';
+import { Pipette, Check } from 'lucide-react';
 import { isValidHex, expandHex } from '../lib/color-utils';
 
 interface ColorPickerProps {
@@ -10,27 +10,11 @@ interface ColorPickerProps {
   id: string;
 }
 
-const RECENT_KEY = 'qr-color-recent';
-const MAX_RECENT = 6;
-
-function readRecent(): string[] {
-  try {
-    const raw = localStorage.getItem(RECENT_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((v) => typeof v === 'string' && isValidHex(v)).slice(0, MAX_RECENT);
-  } catch {
-    return [];
-  }
-}
-
-function pushRecent(color: string): string[] {
-  const current = readRecent();
-  const next = [color, ...current.filter((c) => c.toLowerCase() !== color.toLowerCase())].slice(0, MAX_RECENT);
-  try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-  return next;
-}
+const BRAND_CHIPS = [
+  '#0c0d12', '#ffffff',
+  '#7c8cf5', '#22d3ee', '#4ade80', '#f59e0b',
+  '#ef4444', '#ec4899',
+];
 
 export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
   const fallbackId = useId();
@@ -61,7 +45,6 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
     if (isValidHex(v)) {
       const expanded = expandHex(v);
       onChange(expanded);
-      pushRecent(expanded);
     }
   }
 
@@ -91,19 +74,12 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
           spellCheck={false}
         />
       </div>
-      {open && <ColorPickerPopover value={value} onChange={(v) => { onChange(v); pushRecent(v); }} />}
+      {open && <ColorPickerPopover value={value} onChange={onChange} />}
     </div>
   );
 }
 
 function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [recent, setRecent] = useState<string[]>(() => readRecent());
-
-  function applyChip(hex: string) {
-    onChange(hex);
-    setRecent(pushRecent(hex));
-  }
-
   async function pickFromScreen() {
     const win = window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
     if (!win.EyeDropper) return;
@@ -123,21 +99,21 @@ function ColorPickerPopover({ value, onChange }: { value: string; onChange: (v: 
         onChange={(c) => onChange(c)}
         className="qr-cp-rc"
       />
-      {recent.length > 0 && (
-        <div className="qr-cp-chips qr-cp-recent" role="group" aria-label="Recent colors">
-          {recent.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="qr-cp-chip qr-cp-chip-sm"
-              style={{ background: c }}
-              onClick={() => applyChip(c)}
-              aria-label={c}
-              title={c}
-            />
-          ))}
-        </div>
-      )}
+      <div className="qr-cp-chips" role="group" aria-label="Brand colors">
+        {BRAND_CHIPS.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            className="qr-cp-chip"
+            style={{ background: chip }}
+            onClick={() => onChange(chip)}
+            aria-label={chip}
+            title={chip}
+          >
+            {value.toLowerCase() === chip.toLowerCase() && <Check aria-hidden="true" />}
+          </button>
+        ))}
+      </div>
       {eyedropperSupported && (
         <button type="button" className="qr-cp-eyedropper" onClick={pickFromScreen}>
           <Pipette aria-hidden="true" />
