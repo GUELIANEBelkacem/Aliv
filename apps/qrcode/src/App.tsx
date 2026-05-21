@@ -20,7 +20,6 @@ import { QrSettings } from './settings/QrSettings';
 import { applyPreset, type Preset } from './settings/presets';
 import { ContentTabs } from './content/ContentTabs';
 import { FaqLauncher } from './sections/FaqLauncher';
-import { Tagline } from './sections/Tagline';
 import { ContentEditor } from './content/ContentEditor';
 import { DEFAULT_CONTENT } from './content/defaults';
 import { buildContent } from './content/builders';
@@ -232,7 +231,6 @@ export default function App() {
         />
       }
     >
-      <Tagline />
       <div className="qr-app">
         <SectionRail items={railItems} active={activeSection} onChange={setActiveSection} />
 
