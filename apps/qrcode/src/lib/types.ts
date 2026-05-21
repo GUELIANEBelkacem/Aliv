@@ -13,7 +13,17 @@ export type ModuleShape =
   | 'classy-rounded'
   | 'extra-rounded';
 
-export type EyeShape = 'square' | 'rounded' | 'leaf' | 'circle';
+// 1:1 with qr-code-styling's CornerSquareType ∪ CornerDotType. `circle`
+// is our friendlier name for the engine's `dot` value (a literal filled
+// circle); everything else maps straight through.
+export type EyeShape =
+  | 'square'
+  | 'rounded'
+  | 'extra-rounded'
+  | 'classy'
+  | 'classy-rounded'
+  | 'dots'
+  | 'circle';
 
 export type FrameShape = 'none' | 'square' | 'rounded' | 'circle';
 

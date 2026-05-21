@@ -13,7 +13,10 @@ const MODULE_SHAPES: { value: ModuleShape; label: string }[] = [
 const EYE_SHAPES: { value: EyeShape; label: string }[] = [
   { value: 'square', label: 'Square' },
   { value: 'rounded', label: 'Rounded' },
-  { value: 'leaf', label: 'Leaf' },
+  { value: 'extra-rounded', label: 'Extra R.' },
+  { value: 'classy', label: 'Classy' },
+  { value: 'classy-rounded', label: 'Classy R.' },
+  { value: 'dots', label: 'Dots' },
   { value: 'circle', label: 'Circle' },
 ];
 

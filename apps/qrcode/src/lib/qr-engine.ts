@@ -17,15 +17,21 @@ const MODULE_SHAPE_MAP: Record<ModuleShape, DotType> = {
 
 const EYE_FRAME_MAP: Record<EyeShape, CornerSquareType> = {
   square: 'square',
-  rounded: 'extra-rounded',
-  leaf: 'extra-rounded',
+  rounded: 'rounded',
+  'extra-rounded': 'extra-rounded',
+  classy: 'classy',
+  'classy-rounded': 'classy-rounded',
+  dots: 'dots',
   circle: 'dot',
 };
 
 const EYE_BALL_MAP: Record<EyeShape, CornerDotType> = {
   square: 'square',
   rounded: 'rounded',
-  leaf: 'rounded',
+  'extra-rounded': 'extra-rounded',
+  classy: 'classy',
+  'classy-rounded': 'classy-rounded',
+  dots: 'dots',
   circle: 'dot',
 };
 

@@ -35,9 +35,9 @@ describe('ShapeControls', () => {
     const { container } = render(
       <ShapeControls {...baseProps} onEyeFrameShape={onEyeFrame} onEyeBallShape={onEyeBall} />,
     );
-    fireEvent.click(container.querySelector('[aria-label="Eye frame"] [data-segment-value="leaf"]')!);
+    fireEvent.click(container.querySelector('[aria-label="Eye frame"] [data-segment-value="classy"]')!);
     fireEvent.click(container.querySelector('[aria-label="Eye ball"] [data-segment-value="circle"]')!);
-    expect(onEyeFrame).toHaveBeenCalledWith('leaf');
+    expect(onEyeFrame).toHaveBeenCalledWith('classy');
     expect(onEyeBall).toHaveBeenCalledWith('circle');
   });
 
