@@ -3,7 +3,7 @@ export function Footer() {
     <div className="web-footer">
       <span>© {new Date().getFullYear()} Aliv</span>
       <span className="web-footer-divider">·</span>
-      <a href="https://github.com/anthropics/claude-code/issues" target="_blank" rel="noopener">Source &amp; issues</a>
+      <a href="https://github.com/GUELIANEBelkacem/Aliv" target="_blank" rel="noopener">Source &amp; issues</a>
     </div>
   );
 }
