@@ -42,5 +42,11 @@ Thumbs.db
 # Memory / personal
 memory/
 
-# Claude Code local settings
+# Personal notes / project docs (not for public repo)
+notes/
+/CLAUDE.md
+/AGENTS.md
+
+# Tool settings
+.claude/
 .claude/settings.local.json
