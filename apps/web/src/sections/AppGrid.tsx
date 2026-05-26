@@ -16,7 +16,7 @@ export function AppGrid() {
           const content = (
             <>
               <div className="web-app-card-leaf">
-                <Logo size={48} />
+                <Logo size={48} appId={app.id} />
               </div>
               <h3 className="web-app-card-name">{app.name}</h3>
               <p className="web-app-card-tagline">{app.tagline}</p>

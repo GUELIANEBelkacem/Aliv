@@ -58,7 +58,7 @@ export function AppSwitcher({ open, onClose, currentAppId, tld }: AppSwitcherPro
             };
             const content = (
               <>
-                <Logo size={32} />
+                <Logo size={32} appId={app.id} />
                 <span className="aliv-app-tile-name">{app.name}</span>
                 <span className="aliv-app-tile-tagline">{app.tagline}</span>
                 {isComingSoon && <span className="aliv-app-tile-badge">Soon</span>}

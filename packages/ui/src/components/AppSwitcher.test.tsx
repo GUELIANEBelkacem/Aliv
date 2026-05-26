@@ -43,7 +43,7 @@ describe('AppSwitcher', () => {
     const tile = container.querySelector('[data-app-id="qrcode"]') as HTMLAnchorElement;
     expect(tile.tagName).toBe('A');
     expect(tile.getAttribute('target')).toBe('_blank');
-    expect(tile.href).toContain('qrcode.aliv.test');
+    expect(tile.href).toContain('qrgen.aliv.test');
     Object.defineProperty(window, 'location', { value: original, writable: true, configurable: true });
   });
 

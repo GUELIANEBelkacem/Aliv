@@ -6,7 +6,7 @@ import { Logo } from './Logo';
 import { IconButton } from './IconButton';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { useShortcuts, type Shortcut } from '../hooks/useShortcuts';
-import { getApp } from '../registry/app-registry';
+import { getApp, appUrl } from '../registry/app-registry';
 import type { AppId } from '../registry/types';
 
 interface AppShellProps {
@@ -47,8 +47,8 @@ export function AppShell({
     <div className="aliv-shell">
       <header className="aliv-shell-header">
         <div className="aliv-shell-brand">
-          <a href={tld ? `https://${tld}` : '/'} className="aliv-brand-link" aria-label="Aliv platform home">
-            <Logo size={26} title="Aliv" />
+          <a href={appUrl(getApp('web'), tld)} className="aliv-brand-link" aria-label="Aliv platform home">
+            <Logo size={26} title="Aliv" appId={appId} />
             <span className="aliv-wordmark">aliv</span>
           </a>
           <span className="aliv-brand-divider" aria-hidden="true">|</span>
