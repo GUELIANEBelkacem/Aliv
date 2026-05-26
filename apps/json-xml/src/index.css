@@ -108,10 +108,11 @@ html, body, #root { height: 100%; width: 100%; }
 body { margin: 0; }
 
 /* ===== App Layout ===== */
-.app {
+.app-body {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: var(--bg);
 }
@@ -916,7 +917,7 @@ kbd {
 /* ===== Responsive: Phone ===== */
 @media (max-width: 768px) {
   /* Safe areas */
-  .app {
+  .app-body {
     padding-top: env(safe-area-inset-top);
   }
   .status-bar {
