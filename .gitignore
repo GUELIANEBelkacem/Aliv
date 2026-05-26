@@ -8,6 +8,10 @@ dist-ssr/
 **/dist/
 build/
 
+# Vite dependency pre-bundling cache (local dev only)
+.vite/
+**/.vite/
+
 # Logs
 logs
 *.log
